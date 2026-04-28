@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ES2018",
     "lib": ["DOM", "ES2018"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true
   },
