@@ -47,6 +47,30 @@ export interface GHLogger {
 interface RequestOptions {
 	body?: unknown;
 	accept?: string;
+	binary?: boolean;
+}
+
+export interface TreeEntry {
+	path: string;
+	mode: string;
+	type: 'blob' | 'tree' | 'commit';
+	sha: string | null;
+}
+
+export interface TreeItem {
+	path: string;
+	mode: string;
+	type: 'blob' | 'tree' | 'commit';
+	sha: string;
+	size?: number;
+	url?: string;
+}
+
+export interface TreeResponse {
+	sha: string;
+	url: string;
+	tree: TreeItem[];
+	truncated: boolean;
 }
 
 // Encodes an ArrayBuffer to base64 using chunked processing to avoid the
@@ -146,6 +170,9 @@ export class GitHubClient {
 						Math.max(0, resetUnix * 1000 - Date.now()),
 					);
 				}
+				if (options.binary) {
+					return response.arrayBuffer as unknown;
+				}
 				try {
 					return response.json as unknown;
 				} catch {
@@ -206,5 +233,65 @@ export class GitHubClient {
 	private backoff(retryCount: number, baseMs: number): number {
 		const expo = Math.min(baseMs * 2 ** retryCount, 60_000);
 		return expo + Math.random() * 0.1 * expo;
+	}
+
+	async getBranch(owner: string, repo: string, branch: string): Promise<{ commitSha: string; treeSha: string }> {
+		const data = (await this.request('GET', `/repos/${owner}/${repo}/branches/${branch}`)) as {
+			commit: { sha: string; commit: { tree: { sha: string } } };
+		};
+		return { commitSha: data.commit.sha, treeSha: data.commit.commit.tree.sha };
+	}
+
+	async getTree(owner: string, repo: string, treeSha: string, recursive: boolean): Promise<TreeResponse> {
+		const suffix = recursive ? '?recursive=1' : '';
+		return (await this.request('GET', `/repos/${owner}/${repo}/git/trees/${treeSha}${suffix}`)) as TreeResponse;
+	}
+
+	async getBlob(owner: string, repo: string, blobSha: string): Promise<ArrayBuffer> {
+		return (await this.request('GET', `/repos/${owner}/${repo}/git/blobs/${blobSha}`, {
+			accept: 'application/vnd.github.raw',
+			binary: true,
+		})) as ArrayBuffer;
+	}
+
+	async createBlob(
+		owner: string,
+		repo: string,
+		content: ArrayBuffer,
+		isBinary: boolean,
+	): Promise<{ sha: string }> {
+		const body = isBinary
+			? { content: encodeBase64Chunked(content), encoding: 'base64' }
+			: { content: new TextDecoder().decode(content), encoding: 'utf-8' };
+		return (await this.request('POST', `/repos/${owner}/${repo}/git/blobs`, { body })) as { sha: string };
+	}
+
+	async createTree(
+		owner: string,
+		repo: string,
+		baseTreeSha: string,
+		entries: TreeEntry[],
+	): Promise<{ sha: string }> {
+		return (await this.request('POST', `/repos/${owner}/${repo}/git/trees`, {
+			body: { base_tree: baseTreeSha, tree: entries },
+		})) as { sha: string };
+	}
+
+	async createCommit(
+		owner: string,
+		repo: string,
+		message: string,
+		treeSha: string,
+		parentSha: string,
+	): Promise<{ sha: string }> {
+		return (await this.request('POST', `/repos/${owner}/${repo}/git/commits`, {
+			body: { message, tree: treeSha, parents: [parentSha] },
+		})) as { sha: string };
+	}
+
+	async updateRef(owner: string, repo: string, branch: string, commitSha: string): Promise<void> {
+		await this.request('PATCH', `/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+			body: { sha: commitSha, force: false },
+		});
 	}
 }

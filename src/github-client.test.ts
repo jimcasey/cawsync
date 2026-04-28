@@ -17,6 +17,7 @@ import {
 	GHServerError,
 	encodeBase64Chunked,
 } from './github-client';
+import type { TreeEntry } from './github-client';
 
 const mockRequestUrl = requestUrl as Mock;
 
@@ -283,6 +284,185 @@ describe('GitHubClient', () => {
 			const err = await call(client, 'GET', '/test').catch((e: unknown) => e);
 			expect(err).toBeInstanceOf(GHRateLimitError);
 			expect((err as GHRateLimitError).retryAfterMs).toBe(30_000);
+		});
+	});
+});
+
+describe('domain methods', () => {
+	beforeEach(() => {
+		mockRequestUrl.mockReset();
+	});
+
+	describe('getBranch', () => {
+		test('returns commitSha and treeSha, sends GET to branches endpoint', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(
+				makeResponse(200, {
+					commit: { sha: 'commit-abc', commit: { tree: { sha: 'tree-xyz' } } },
+				}),
+			);
+
+			const result = await client.getBranch(OWNER, REPO, 'main');
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string; method: string };
+			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/branches/main`);
+			expect(arg.method).toBe('GET');
+			expect(result).toEqual({ commitSha: 'commit-abc', treeSha: 'tree-xyz' });
+		});
+	});
+
+	describe('getTree', () => {
+		test('appends recursive=1 param and returns raw TreeResponse including truncated', async () => {
+			const { client } = makeClient();
+			const treeData = {
+				sha: 'tree-sha',
+				url: 'https://api.github.com/repos/o/r/git/trees/tree-sha',
+				tree: [{ path: 'README.md', mode: '100644', type: 'blob', sha: 'blob-sha', size: 42 }],
+				truncated: false,
+			};
+			mockRequestUrl.mockResolvedValue(makeResponse(200, treeData));
+
+			const result = await client.getTree(OWNER, REPO, 'tree-sha', true);
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string };
+			expect(arg.url).toContain('?recursive=1');
+			expect(result.truncated).toBe(false);
+			expect(result.tree).toHaveLength(1);
+		});
+
+		test('omits recursive param when recursive is false', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(
+				makeResponse(200, { sha: 's', url: '', tree: [], truncated: false }),
+			);
+
+			await client.getTree(OWNER, REPO, 'tree-sha', false);
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string };
+			expect(arg.url).not.toContain('recursive');
+		});
+	});
+
+	describe('getBlob', () => {
+		test('sends Accept: application/vnd.github.raw and returns ArrayBuffer', async () => {
+			const { client } = makeClient();
+			const binaryData = new Uint8Array([0x89, 0x50, 0x4e, 0x47]).buffer;
+			mockRequestUrl.mockResolvedValue({
+				status: 200,
+				headers: { 'content-type': 'application/octet-stream' },
+				text: '',
+				json: null,
+				arrayBuffer: binaryData,
+			} as RequestUrlResponse);
+
+			const result = await client.getBlob(OWNER, REPO, 'blob-sha-123');
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string; headers: Record<string, string> };
+			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/git/blobs/blob-sha-123`);
+			expect(arg.headers['Accept']).toBe('application/vnd.github.raw');
+			expect(result).toBeInstanceOf(ArrayBuffer);
+			expect(result.byteLength).toBe(4);
+		});
+	});
+
+	describe('createBlob', () => {
+		test('uses base64 encoding for binary input larger than 1 MB', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(makeResponse(201, { sha: 'blob-sha-new' }));
+			const content = new Uint8Array(1.1 * 1024 * 1024).fill(0xff).buffer;
+
+			const result = await client.createBlob(OWNER, REPO, content, true);
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string; method: string; body: string };
+			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/git/blobs`);
+			expect(arg.method).toBe('POST');
+			const body = JSON.parse(arg.body) as { content: string; encoding: string };
+			expect(body.encoding).toBe('base64');
+			expect(typeof body.content).toBe('string');
+			expect(result).toEqual({ sha: 'blob-sha-new' });
+		});
+
+		test('uses utf-8 encoding for text input', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(makeResponse(201, { sha: 'blob-sha-text' }));
+			const content = new TextEncoder().encode('hello world').buffer;
+
+			const result = await client.createBlob(OWNER, REPO, content, false);
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { body: string };
+			const body = JSON.parse(arg.body) as { content: string; encoding: string };
+			expect(body.encoding).toBe('utf-8');
+			expect(body.content).toBe('hello world');
+			expect(result).toEqual({ sha: 'blob-sha-text' });
+		});
+	});
+
+	describe('createTree', () => {
+		test('sends deletion entries with sha: null and returns new tree sha', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(makeResponse(201, { sha: 'new-tree-sha' }));
+			const entries: TreeEntry[] = [
+				{ path: 'deleted.md', mode: '100644', type: 'blob', sha: null },
+				{ path: 'kept.md', mode: '100644', type: 'blob', sha: 'existing-blob' },
+			];
+
+			const result = await client.createTree(OWNER, REPO, 'base-tree-sha', entries);
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string; method: string; body: string };
+			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/git/trees`);
+			expect(arg.method).toBe('POST');
+			const body = JSON.parse(arg.body) as { base_tree: string; tree: TreeEntry[] };
+			expect(body.base_tree).toBe('base-tree-sha');
+			const deletion = body.tree.find((e) => e.path === 'deleted.md');
+			expect(deletion?.sha).toBeNull();
+			expect(result).toEqual({ sha: 'new-tree-sha' });
+		});
+	});
+
+	describe('createCommit', () => {
+		test('sends message, tree, and parent array; returns commit sha', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(makeResponse(201, { sha: 'new-commit-sha' }));
+
+			const result = await client.createCommit(OWNER, REPO, 'feat: sync', 'tree-sha', 'parent-sha');
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string; method: string; body: string };
+			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/git/commits`);
+			expect(arg.method).toBe('POST');
+			const body = JSON.parse(arg.body) as { message: string; tree: string; parents: string[] };
+			expect(body.message).toBe('feat: sync');
+			expect(body.tree).toBe('tree-sha');
+			expect(body.parents).toEqual(['parent-sha']);
+			expect(result).toEqual({ sha: 'new-commit-sha' });
+		});
+	});
+
+	describe('updateRef', () => {
+		test('sends PATCH with sha and force: false; resolves void on success', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(
+				makeResponse(200, { ref: 'refs/heads/main', object: { sha: 'commit-sha' } }),
+			);
+
+			await expect(client.updateRef(OWNER, REPO, 'main', 'commit-sha')).resolves.toBeUndefined();
+
+			const arg = mockRequestUrl.mock.calls[0][0] as { url: string; method: string; body: string };
+			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/git/refs/heads/main`);
+			expect(arg.method).toBe('PATCH');
+			const body = JSON.parse(arg.body) as { sha: string; force: boolean };
+			expect(body.sha).toBe('commit-sha');
+			expect(body.force).toBe(false);
+		});
+
+		test('propagates GHFastForwardError from transport on 422', async () => {
+			const { client } = makeClient();
+			mockRequestUrl.mockResolvedValue(
+				makeResponse(422, { message: 'Update is not a fast forward' }),
+			);
+
+			await expect(client.updateRef(OWNER, REPO, 'main', 'commit-sha')).rejects.toThrow(
+				GHFastForwardError,
+			);
 		});
 	});
 });
