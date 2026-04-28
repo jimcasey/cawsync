@@ -18,6 +18,11 @@ The project is in initial development (Phase 0 not yet started). The design spec
 
 See `docs/workflow.md` for the full workflow. See `docs/human-interactions.md` for every human approval gate. ADRs live in `docs/adr/`. Planning session summaries live in `docs/sessions/`.
 
+## Pull requests
+
+- Keep PR titles short and descriptive; do not include issue references in the title.
+- Reference issues in the PR description using `Closes #N` (or `Fixes #N`). GitHub automatically closes the linked issue on squash-merge even when the keyword is in the description rather than the title.
+
 ## Architecture
 
 Six modules (see §3 of the design spec for the ASCII diagram):
