@@ -79,9 +79,9 @@ Claude Code: implement on claude/<slug> branch
         ↓
 PR opened (title references issue; body closes #N)
         ↓
-/ultrareview runs
+/review runs (Claude posts findings as a PR comment)
         ↓
-Human reviews + approves
+Human reviews findings + approves
         ↓
 Squash merge → issue closes automatically
 ```
@@ -92,15 +92,17 @@ For UI-facing changes, the planning session also doubles as a design review: Cla
 
 ## AI code review
 
-Run `/ultrareview` on every PR before merging.
+Run `/review` on every PR before merging. `/review` performs a focused branch review and posts findings as a PR comment for human sign-off.
 
-Focus areas by phase:
+Invoke with phase-specific guidance so the review targets the right concerns:
 
 | Phase | Review focus |
 |---|---|
 | 0–1 | Correctness, constraint compliance (`requestUrl` not `fetch`, vault I/O only, PAT never logged) |
 | 2 | Classifier matrix coverage (every cell of §5.5), error handling, retry logic |
 | 3+ | Mobile layout, iOS-specific behavior, accessibility |
+
+Example invocation for Phase 2: `/review` — then note in the PR comment prompt to check classifier matrix coverage and retry logic against §5.5 of the design spec.
 
 ---
 

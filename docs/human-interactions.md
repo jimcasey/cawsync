@@ -55,14 +55,14 @@ Assign existing issues to the Phase 0 milestone and apply appropriate labels.
 
 ## Pull request review
 
-**Trigger:** Implementation is complete on a branch. `/ultrareview` has run.
+**Trigger:** Implementation is complete on a branch. `/review` has run and posted findings as a PR comment.
 
 **Action:**
-1. Read the `/ultrareview` output.
+1. Read the `/review` findings comment on the PR.
 2. Review the diff.
 3. Approve and squash-merge, or request changes.
 
-Do not merge without `/ultrareview` completing. If ultrareview raises a concern you're unsure about, ask Claude to explain before merging.
+Do not merge without `/review` completing. If the review raises a concern you're unsure about, ask Claude to explain before merging.
 
 ---
 
