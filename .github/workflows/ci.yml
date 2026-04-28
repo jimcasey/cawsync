@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect package.json
+        id: pkg
+        run: echo "exists=$(test -f package.json && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        if: steps.pkg.outputs.exists == 'true'
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+        if: steps.pkg.outputs.exists == 'true'
+      - run: npm run typecheck
+        if: steps.pkg.outputs.exists == 'true'
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect package.json
+        id: pkg
+        run: echo "exists=$(test -f package.json && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        if: steps.pkg.outputs.exists == 'true'
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+        if: steps.pkg.outputs.exists == 'true'
+      - run: npm run lint
+        if: steps.pkg.outputs.exists == 'true'

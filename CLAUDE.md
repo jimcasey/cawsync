@@ -12,7 +12,11 @@ The full design specification is at `docs/design-specification.md` and is the au
 
 ## Project status
 
-The project is in initial development. The design spec is complete; no source code exists yet. This CLAUDE.md should be updated with build/test commands once the project is scaffolded.
+The project is in initial development (Phase 0 not yet started). The design spec is complete; no source code exists yet. This CLAUDE.md will be updated with build/test commands in Phase 0.
+
+## Development workflow
+
+See `docs/workflow.md` for the full workflow. See `docs/human-interactions.md` for every human approval gate. ADRs live in `docs/adr/`. Planning session summaries live in `docs/sessions/`.
 
 ## Architecture
 
