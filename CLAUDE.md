@@ -35,6 +35,17 @@ npm run lint      # ESLint over src/
 
 See `docs/workflow.md` for the full workflow. See `docs/human-interactions.md` for every human approval gate. ADRs live in `docs/adr/`. Planning session summaries live in `docs/sessions/`.
 
+## Issue number shorthand
+
+If the session opens with a message that is solely an issue number (e.g. `#40` or `40`), treat it as an instruction to implement that issue:
+
+1. Fetch the issue from `jimcasey/jackdaw` using the GitHub MCP tools.
+2. Read the issue body and any linked design-spec sections to understand the requirements.
+3. Create (or check out) the appropriate feature branch following the repo's branch-naming convention.
+4. Implement the issue — writing code, tests, and any doc updates required.
+5. Commit and push to the feature branch.
+6. Do **not** open a pull request unless the user explicitly asks for one.
+
 ## Pull requests
 
 - Keep PR titles short and descriptive; do not include issue references in the title.
