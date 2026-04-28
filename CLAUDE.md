@@ -12,7 +12,24 @@ The full design specification is at `docs/design-specification.md` and is the au
 
 ## Project status
 
-The project is in initial development (Phase 0 not yet started). The design spec is complete; no source code exists yet. This CLAUDE.md will be updated with build/test commands in Phase 0.
+Phase 0 (scaffold) is complete. Phase 1 (core implementation) is next.
+
+## Build commands
+
+```sh
+npm install       # install dependencies
+npm run build     # production build → main.js
+npm run dev       # watch mode (rebuilds on save)
+npm run typecheck # TypeScript type check without emitting
+npm run lint      # ESLint over src/
+```
+
+## Loading in Obsidian
+
+1. Clone (or symlink) this repo into `<your-vault>/.obsidian/plugins/jackdaw/`.
+2. Run `npm install && npm run build` to produce `main.js`.
+3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Jackdaw**.
+4. During development, run `npm run dev` for watch mode, then use **Reload app without saving** (Ctrl/Cmd+P) after each rebuild.
 
 ## Development workflow
 
