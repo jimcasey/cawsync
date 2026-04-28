@@ -9,7 +9,8 @@ const ctx = await esbuild.context({
   format: 'cjs',
   target: 'es2018',
   outfile: 'main.js',
-  sourcemap: false,
+  sourcemap: watch ? 'inline' : false,
+  minify: !watch,
   treeShaking: true,
   logLevel: 'info',
 });
