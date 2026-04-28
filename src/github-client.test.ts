@@ -53,7 +53,7 @@ function makeResponse(
 		status,
 		headers: { 'content-type': 'application/json', ...headers },
 		text,
-		json: typeof body === 'string' ? body : body,
+		json: body,
 		arrayBuffer: new ArrayBuffer(0),
 	};
 }
@@ -102,14 +102,27 @@ describe('GitHubClient', () => {
 			expect(param.headers['Accept']).toBe('application/vnd.github.raw');
 		});
 
-		test('reads PAT fresh on each retry so settings changes take effect', async () => {
-			let callCount = 0;
-			const getPatSpy = vi.fn(() => {
-				callCount++;
-				return `ghp_token_${callCount}`;
+		test('sets Content-Type: application/json and serializes body when body option is provided', async () => {
+			mockRequestUrl.mockResolvedValue(makeResponse(200, {}));
+			const { client } = makeClient();
+
+			await call(client, 'POST', '/repos/testowner/testrepo/git/blobs', {
+				body: { content: 'aGVsbG8=', encoding: 'base64' },
 			});
+
+			const param = mockRequestUrl.mock.calls[0][0] as {
+				headers: Record<string, string>;
+				body: string;
+			};
+			expect(param.headers['Content-Type']).toBe('application/json');
+			expect(JSON.parse(param.body)).toEqual({ content: 'aGVsbG8=', encoding: 'base64' });
+		});
+
+		test('reads PAT fresh on each retry so settings changes take effect', async () => {
+			let n = 0;
+			const getPat = vi.fn(() => `ghp_token_${++n}`);
 			const sleep = vi.fn().mockResolvedValue(undefined);
-			const client = new GitHubClient(() => getPatSpy(), () => OWNER, () => REPO, VERSION, null, sleep);
+			const client = new GitHubClient(getPat, () => OWNER, () => REPO, VERSION, null, sleep);
 
 			// Return 429 twice then succeed
 			mockRequestUrl

@@ -132,13 +132,6 @@ export class GitHubClient {
 			const remaining = parseInt(response.headers['x-ratelimit-remaining'] ?? '-1', 10);
 			const resetUnix = parseInt(response.headers['x-ratelimit-reset'] ?? '0', 10);
 
-			if (remaining === 0) {
-				const resetAt = new Date(resetUnix * 1000).toISOString();
-				throw new GHRateLimitError(
-					`GitHub rate limit exhausted. Resets at ${resetAt}.`,
-					Math.max(0, resetUnix * 1000 - Date.now()),
-				);
-			}
 			if (remaining > 0 && remaining < 100) {
 				await this.logger?.warn('gh.ratelimit.warn', { remaining, resetAt: resetUnix });
 			}
@@ -146,9 +139,15 @@ export class GitHubClient {
 			const { status } = response;
 
 			if (status >= 200 && status < 300) {
+				if (remaining === 0) {
+					const resetAt = new Date(resetUnix * 1000).toISOString();
+					throw new GHRateLimitError(
+						`GitHub rate limit exhausted. Resets at ${resetAt}.`,
+						Math.max(0, resetUnix * 1000 - Date.now()),
+					);
+				}
 				try {
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-					return response.json;
+					return response.json as unknown;
 				} catch {
 					return response.text;
 				}
