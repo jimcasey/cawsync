@@ -227,22 +227,18 @@ describe('pre-flight validation', () => {
 
 describe('sync lock', () => {
 	test('already syncing: second call returns cancelled without calling any APIs', async () => {
-		const { engine, stateStore, client } = makeEngine({
-			stateStore: makeStateStore(makeState()),
-		});
-
-		// Make load pend so the first sync never completes
-		stateStore.load.mockReturnValue(new Promise(() => {}));
+		const { engine, stateStore } = makeEngine();
 		setupNoChanges();
 
-		// First sync starts and sets isSyncing = true before its first await
-		const _p1 = engine.sync();
-
-		// Second call immediately sees the lock
+		// isSyncing is set synchronously before sync()'s first await, so the
+		// second call immediately sees the lock before p1 runs any further awaits.
+		const p1 = engine.sync();
 		const result2 = await engine.sync();
 
 		expect(result2.status).toBe('cancelled');
-		expect(client.getBranch).not.toHaveBeenCalled();
+
+		await p1; // let p1 finish cleanly rather than leaving a dangling promise
+		expect(stateStore.load).toHaveBeenCalledTimes(1); // called by p1 only, not by result2
 	});
 
 	test('lock released after success: subsequent call is not blocked', async () => {
@@ -572,6 +568,34 @@ describe('GHFastForwardError retry', () => {
 		expect(applyPush).toHaveBeenCalledTimes(3);
 		expect(result.status).toBe('error');
 	});
+
+	test('conflictsResolved not double-counted across retries', async () => {
+		const state = makeState();
+		const updatedState = makeState({ lastSyncCommitSha: 'new-commit' });
+		const { engine } = makeEngine({
+			stateStore: makeStateStore(state),
+			settings: makeSettings({ conflictPolicy: 'always-prefer-local' }),
+		});
+
+		const conflictPath = makeClassified('conflict.md', 'conflict', 'modified', 'modified');
+		vi.mocked(buildLocalChangeSet).mockResolvedValue(
+			new Map([['conflict.md', makeLocalChange('conflict.md', 'modified')]]),
+		);
+		vi.mocked(buildRemoteChangeSet).mockResolvedValue(
+			new Map([['conflict.md', makeRemoteChange('conflict.md', 'modified')]]),
+		);
+		vi.mocked(classify).mockReturnValue([conflictPath]);
+		vi.mocked(applyPush)
+			.mockRejectedValueOnce(new GHFastForwardError('ff'))
+			.mockResolvedValue({ newCommitSha: 'new-commit', updatedState });
+
+		const result = await engine.sync();
+
+		expect(result.status).toBe('success');
+		if (result.status === 'success') {
+			expect(result.report.conflictsResolved).toBe(1); // not 2 despite two iterations
+		}
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -678,6 +702,33 @@ describe('first-sync', () => {
 		expect(result.status).toBe('up-to-date');
 	});
 
+	test('first-sync GHFastForwardError → error returned, state not saved (no retry)', async () => {
+		const { engine, stateStore, firstSync } = makeEngine({
+			stateStore: makeStateStore(null),
+		});
+
+		const summary: FirstSyncSummary = {
+			localOnly: ['local.md'],
+			remoteOnly: [],
+			identical: [],
+			conflicts: [],
+		};
+
+		vi.mocked(buildLocalInventory).mockResolvedValue(
+			new Map([['local.md', makeLocalChange('local.md')]]),
+		);
+		vi.mocked(buildRemoteChangeSet).mockResolvedValue(new Map());
+		vi.mocked(buildFirstSyncSummary).mockResolvedValue(summary);
+		firstSync.resolve.mockResolvedValue(new Map());
+		vi.mocked(applyPush).mockRejectedValue(new GHFastForwardError('ff'));
+
+		const result = await engine.sync();
+
+		expect(applyPush).toHaveBeenCalledTimes(1); // no retry in first-sync path
+		expect(result.status).toBe('error');
+		expect(stateStore.save).not.toHaveBeenCalled();
+	});
+
 	test('first-sync cancel → status cancelled, state not saved', async () => {
 		const { engine, stateStore, firstSync } = makeEngine({
 			stateStore: makeStateStore(null),
@@ -727,6 +778,27 @@ describe('logging', () => {
 		expect((logger as ReturnType<typeof makeLogger>).error).toHaveBeenCalledWith(
 			'sync.error',
 			expect.objectContaining({ error: boom.message }),
+		);
+	});
+
+	test('sync.complete logged with correct fields after successful push', async () => {
+		const state = makeState();
+		const updatedState = makeState({ lastSyncCommitSha: 'new-commit' });
+		const { engine, logger } = makeEngine({ stateStore: makeStateStore(state) });
+
+		const pushPath = makeClassified('note.md', 'push', 'added');
+		vi.mocked(buildLocalChangeSet).mockResolvedValue(
+			new Map([['note.md', makeLocalChange('note.md', 'added')]]),
+		);
+		vi.mocked(buildRemoteChangeSet).mockResolvedValue(new Map());
+		vi.mocked(classify).mockReturnValue([pushPath]);
+		vi.mocked(applyPush).mockResolvedValue({ newCommitSha: 'new-commit', updatedState });
+
+		await engine.sync();
+
+		expect((logger as ReturnType<typeof makeLogger>).info).toHaveBeenCalledWith(
+			'sync.complete',
+			expect.objectContaining({ status: 'success', filesAdded: 1, filesModified: 0, filesDeleted: 0 }),
 		);
 	});
 

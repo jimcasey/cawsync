@@ -87,6 +87,7 @@ export class SyncEngine {
 	): Promise<SyncResult> {
 		const { owner, repo, branch } = settings;
 		let fastForwardRetries = 0;
+		const policyResolver = new PolicyBasedResolver(settings.conflictPolicy);
 
 		const report: SyncReport = {
 			filesAdded: 0,
@@ -130,8 +131,7 @@ export class SyncEngine {
 
 			if (conflictItems.length > 0) {
 				if (settings.conflictPolicy !== 'always-ask') {
-					const resolver = new PolicyBasedResolver(settings.conflictPolicy);
-					conflictResolutions = (await resolver.resolve(conflictItems)) as Map<string, ConflictResolution>;
+					conflictResolutions = (await policyResolver.resolve(conflictItems)) as Map<string, ConflictResolution>;
 				} else {
 					const result = await this.conflicts.resolve(conflictItems);
 					if (result === 'cancel') {
@@ -139,7 +139,7 @@ export class SyncEngine {
 					}
 					conflictResolutions = result;
 				}
-				report.conflictsResolved += conflictResolutions.size;
+				report.conflictsResolved = conflictResolutions.size;
 			}
 
 			// Partition into pull and push lists
@@ -168,8 +168,9 @@ export class SyncEngine {
 				);
 				syncState = updatedState;
 
+				const skippedSet = new Set(skipped);
 				for (const item of pullPaths) {
-					if (skipped.includes(item.path)) continue;
+					if (skippedSet.has(item.path)) continue;
 					const remoteChange = remote.get(item.path);
 					if (!remoteChange || remoteChange.type === 'unchanged') continue;
 					if (remoteChange.type === 'added') report.filesAdded++;
@@ -326,6 +327,7 @@ export class SyncEngine {
 			);
 			syncState = updatedState;
 			report.commitSha = newCommitSha;
+			// All first-sync push paths are 'added' (localOnly + keep-local conflicts)
 			report.filesAdded += pushPaths.length;
 
 			await this.logger.info('sync.commit', { commitSha: newCommitSha });
