@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { parseGitignorePatterns, matchesGlob, isExcluded, FileScanner } from './file-scanner';
-import type { VaultAdapter } from './sync-engine-types';
+import { parseGitignorePatterns, matchesGlob, isExcluded, FileScanner } from '../src/file-scanner';
+import type { VaultAdapter } from '../src/sync-engine-types';
 
 interface AdapterSpec {
 	exists?: Record<string, boolean>;

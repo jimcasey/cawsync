@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest';
-import { Logger } from './logger';
+import { Logger } from '../src/logger';
 
 const PREFIX = '.obsidian/plugins/jackdaw';
 const LOG_PATH = `${PREFIX}/sync.log`;

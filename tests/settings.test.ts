@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { DEFAULT_SETTINGS } from './settings';
-import { SELF_EXCLUDED_PATHS } from './constants';
+import { DEFAULT_SETTINGS } from '../src/settings';
+import { SELF_EXCLUDED_PATHS } from '../src/constants';
 
 test('DEFAULT_SETTINGS matches spec values', () => {
 	expect(DEFAULT_SETTINGS.conflictPolicy).toBe('always-ask');

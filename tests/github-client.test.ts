@@ -17,7 +17,7 @@ import {
 	GHServerError,
 	encodeBase64Chunked,
 	type TreeEntry,
-} from './github-client';
+} from '../src/github-client';
 
 const mockRequestUrl = requestUrl as Mock;
 

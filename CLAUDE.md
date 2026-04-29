@@ -108,4 +108,4 @@ Absence of `sync-state.json` triggers the first-sync flow (§7), which uses `git
 
 ## Testing
 
-Unit tests cover the classifier matrix (every cell in §5.5), hash utilities, state store atomicity, and GitHub client error paths. Integration tests run against a real GitHub repo on a CI-owned account with fresh branches per run. Manual iOS testing (§11.3) is the single most important derisking step.
+Test files live in `tests/` (not `src/`). Unit tests cover the classifier matrix (every cell in §5.5), hash utilities, state store atomicity, and GitHub client error paths. Integration tests run against a real GitHub repo on a CI-owned account with fresh branches per run. Manual iOS testing (§11.3) is the single most important derisking step.

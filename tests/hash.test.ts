@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { sha256, gitBlobSha1 } from './hash';
+import { sha256, gitBlobSha1 } from '../src/hash';
 
 function fromString(s: string): ArrayBuffer {
 	return new TextEncoder().encode(s).buffer;

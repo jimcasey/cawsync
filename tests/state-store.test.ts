@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, type Mock } from 'vitest';
-import { StateStore, type SyncState, type Logger, type StateAdapter } from './state-store';
+import { StateStore, type SyncState, type Logger, type StateAdapter } from '../src/state-store';
 
 const PLUGIN_FOLDER = '.obsidian/plugins/jackdaw';
 const CANONICAL = `${PLUGIN_FOLDER}/sync-state.json`;
