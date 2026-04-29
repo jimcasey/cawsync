@@ -8,36 +8,52 @@ export function parseGitignorePatterns(content: string): string[] {
 		.filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('!'));
 }
 
-export function matchesGlob(pattern: string, path: string): boolean {
+interface CompiledGlob {
+	regex: RegExp;
+	hasSlash: boolean;
+}
+
+const globCache = new Map<string, CompiledGlob>();
+
+function compileGlob(pattern: string): CompiledGlob {
 	// Trailing slash means "match this directory and everything inside it"
 	const normalized = pattern.endsWith('/') ? pattern + '**' : pattern;
 	// Patterns with no slash match against the basename only
 	const hasSlash = normalized.includes('/');
-	const subject = hasSlash ? path : (path.split('/').pop() ?? path);
 
-	let regex = '';
+	let regexStr = '';
 	for (let i = 0; i < normalized.length; i++) {
 		const ch = normalized[i];
 		if (ch === '*' && i + 1 < normalized.length && normalized[i + 1] === '*') {
 			if (i + 2 < normalized.length && normalized[i + 2] === '/') {
 				// **/ matches zero or more directory segments
-				regex += '(?:.+/)?';
+				regexStr += '(?:.+/)?';
 				i += 2;
 			} else {
 				// ** matches anything including path separators
-				regex += '.*';
+				regexStr += '.*';
 				i++;
 			}
 		} else if (ch === '*') {
-			regex += '[^/]*';
+			regexStr += '[^/]*';
 		} else if (ch === '?') {
-			regex += '[^/]';
+			regexStr += '[^/]';
 		} else {
-			regex += ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+			regexStr += ch.replace(/[.+^${}()|[\]\\]/g, '\\$&');
 		}
 	}
 
-	return new RegExp('^' + regex + '$').test(subject);
+	return { regex: new RegExp('^' + regexStr + '$'), hasSlash };
+}
+
+export function matchesGlob(pattern: string, path: string): boolean {
+	let compiled = globCache.get(pattern);
+	if (!compiled) {
+		compiled = compileGlob(pattern);
+		globCache.set(pattern, compiled);
+	}
+	const subject = compiled.hasSlash ? path : (path.split('/').pop() ?? path);
+	return compiled.regex.test(subject);
 }
 
 export function isExcluded(path: string, patterns: readonly string[]): boolean {
@@ -65,11 +81,12 @@ export class FileScanner {
 
 		exclusions.push(...this.config.userExcludePatterns);
 
-		const candidates: string[] = [];
+		// Use a Set to prevent duplicates if a path appears in both listFiles() and the adapter walk
+		const candidates = new Set<string>();
 
 		for (const path of await this.adapter.listFiles()) {
 			if (!isExcluded(path, exclusions)) {
-				candidates.push(path);
+				candidates.add(path);
 			}
 		}
 
@@ -77,12 +94,12 @@ export class FileScanner {
 			await this.walkDirectory('.obsidian', candidates, exclusions);
 		}
 
-		return candidates;
+		return [...candidates];
 	}
 
 	private async walkDirectory(
 		dir: string,
-		results: string[],
+		results: Set<string>,
 		exclusions: string[],
 	): Promise<void> {
 		const { files, dirs } = await this.adapter.listDirectory(dir);
@@ -90,7 +107,7 @@ export class FileScanner {
 		for (const fileName of files) {
 			const path = `${dir}/${fileName}`;
 			if (!isExcluded(path, exclusions)) {
-				results.push(path);
+				results.add(path);
 			}
 		}
 

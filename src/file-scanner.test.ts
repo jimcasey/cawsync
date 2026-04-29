@@ -74,6 +74,11 @@ describe('matchesGlob', () => {
 		expect(matchesGlob('node_modules/', 'other/index.js')).toBe(false);
 	});
 
+	test('* does not match partial names (guards against missing escape)', () => {
+		expect(matchesGlob('*.tmp', 'tmpfile')).toBe(false);
+		expect(matchesGlob('*.tmp', 'notes/tmpfile')).toBe(false);
+	});
+
 	test('pattern with slash matches full vault-relative path', () => {
 		expect(
 			matchesGlob(
