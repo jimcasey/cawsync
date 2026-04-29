@@ -239,4 +239,30 @@ describe('buildLocalChangeSet', () => {
 		expect(result.get('deleted.md')?.type).toBe('deleted');
 		expect(result.size).toBe(3);
 	});
+
+	test('file exceeding perFileSizeLimitMb is skipped', async () => {
+		const settings = { ...BASE_SETTINGS, perFileSizeLimitMb: 0.000001 }; // ~1 byte limit
+		const adapter = makeAdapter({
+			listFiles: ['big.md', 'small.md'],
+			textContent: { 'big.md': 'this is definitely more than one byte', 'small.md': 'x' },
+		});
+		const result = await buildLocalChangeSet(adapter, BASE_STATE, settings);
+
+		expect(result.has('big.md')).toBe(false);
+		expect(result.has('small.md')).toBe(true);
+	});
+
+	test('oversized file in state is not marked deleted — it is skipped silently', async () => {
+		const settings = { ...BASE_SETTINGS, perFileSizeLimitMb: 0.000001 };
+		const state = stateWithFiles([{ path: 'big.md', contentHash: 'old-hash' }]);
+		const adapter = makeAdapter({
+			listFiles: ['big.md'],
+			textContent: { 'big.md': 'this is definitely more than one byte' },
+		});
+		const result = await buildLocalChangeSet(adapter, state, settings);
+
+		// Over-limit files are silently excluded, not treated as deletions
+		expect(result.has('big.md')).toBe(false);
+		expect(result.size).toBe(0);
+	});
 });

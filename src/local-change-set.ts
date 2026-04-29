@@ -16,11 +16,11 @@ export async function buildLocalChangeSet(
 	});
 
 	const paths = await scanner.scan();
+	const visited = new Set(paths);
 	const result = new Map<string, LocalChange>();
-	const visited = new Set<string>();
+	const limitBytes = settings.perFileSizeLimitMb * 1024 * 1024;
 
 	for (const path of paths) {
-		visited.add(path);
 		const dotIndex = path.lastIndexOf('.');
 		const isBinary = dotIndex !== -1 && BINARY_EXTENSIONS.has(path.slice(dotIndex));
 
@@ -31,6 +31,8 @@ export async function buildLocalChangeSet(
 			const encoded = new TextEncoder().encode(await vault.readText(path));
 			bytes = encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength);
 		}
+
+		if (bytes.byteLength > limitBytes) continue;
 
 		const contentHash = await sha256(bytes);
 		const size = bytes.byteLength;
