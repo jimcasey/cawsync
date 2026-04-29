@@ -40,7 +40,7 @@ GitHub Issues + Milestones. No Projects board.
 | Milestone | Contents |
 |---|---|
 | Phase 0 — Scaffold | npm project, build config, `manifest.json`, stub `main.ts`, CI |
-| Phase 1 — Core libs | `github-client.ts`, `state-store.ts`, `logger.ts` |
+| Phase 1 — Core libs | `github-client.ts`, `state-store.ts`, `logger.ts`, `hash.ts`, `settings.ts`, `constants.ts` |
 | Phase 2 — Sync engine | `sync-engine.ts`, classifier, pull, push |
 | Phase 3 — UI | Settings tab, ribbon, status bar, error notices |
 | Phase 4 — First-sync + conflicts | First-sync modal, conflict resolution modal |
@@ -130,7 +130,7 @@ Template: see `docs/adr/001-mit-license.md`.
 
 ```
 Phase 0  Scaffold          npm, build, manifest.json, stub main.ts, CI
-Phase 1  Core libs         github-client.ts, state-store.ts, logger.ts
+Phase 1  Core libs         github-client.ts, state-store.ts, logger.ts, hash.ts, settings.ts, constants.ts
 Phase 2  Sync engine       classifier, pull, push
 Phase 3  UI                settings tab, ribbon, status bar
 Phase 4  First-sync+conf   first-sync modal, conflict resolution modal

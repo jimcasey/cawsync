@@ -319,7 +319,16 @@ Obsidian sync from <device-name> at <ISO-timestamp>
 ### 6.1 Surface
 
 ```ts
-interface GitHubClient {
+class GitHubClient {
+  constructor(
+    getPat: () => string,    // called on every request so settings changes take effect immediately
+    getOwner: () => string,
+    getRepo: () => string,
+    version: string,
+    logger?: GHLogger | null,
+    sleep?: (ms: number) => Promise<void>,  // injectable for tests
+  )
+
   getBranch(owner, repo, branch): Promise<{commitSha, treeSha}>
   getTree(owner, repo, treeSha, recursive: boolean): Promise<TreeResponse>
   getBlob(owner, repo, blobSha): Promise<ArrayBuffer>      // uses raw media type
@@ -328,6 +337,26 @@ interface GitHubClient {
   createCommit(owner, repo, message, treeSha, parentSha): Promise<{sha}>
   updateRef(owner, repo, branch, commitSha): Promise<void>  // throws GHFastForwardError on 422
 }
+
+// Minimal logger interface the client depends on (only needs warn for rate-limit warnings).
+interface GHLogger {
+  warn(event: string, fields?: Record<string, unknown>): Promise<void>;
+}
+
+// Error taxonomy thrown by GitHubClient methods:
+class GHAuthError extends Error {}         // 401 — bad/expired PAT
+class GHNotFoundError extends Error {}     // 404 — missing resource or insufficient permissions
+class GHRateLimitError extends Error {     // rate limit exhausted or secondary-limit retries exceeded
+  retryAfterMs: number;
+}
+class GHFastForwardError extends Error {}  // 422 on any endpoint (in practice: updateRef only)
+class GHNetworkError extends Error {}      // transport-level failure after one retry
+class GHServerError extends Error {        // 5xx or other unexpected status
+  status: number;
+}
+
+// Utility exported alongside the client:
+function encodeBase64Chunked(buffer: ArrayBuffer): string;  // chunked btoa to avoid stack overflow on large files
 ```
 
 ### 6.2 Authentication
@@ -349,7 +378,8 @@ All requests include `Authorization: Bearer <PAT>`. PAT is read from settings on
 - **Network errors:** Single retry after 2s. Surface the underlying error message.
 - **Auth failure (401):** Abort immediately with a "Check your token" error; never retry, never log the token.
 - **Not found (404):** Could be missing repo, missing branch, or PAT lacks permission. The error message should be honest about ambiguity.
-- **Conflict (422 on ref update):** Throw `GHFastForwardError`; the engine handles retry.
+- **Conflict (422):** Throw `GHFastForwardError`. In practice only `updateRef` receives a 422 from GitHub; the engine handles retry. Any other operation receiving a 422 will also surface as `GHFastForwardError`.
+- **Server errors (5xx):** Exponential backoff with jitter, max 3 retries. Throws `GHServerError` with the status code if retries are exhausted.
 
 ### 6.5 Implementation notes
 
@@ -490,6 +520,9 @@ All log writes go through a single Logger instance.
 - `sync.error` — failure with structured error.
 - `state.save` — state file written.
 - `state.recover` — recovered from `.tmp` file on startup.
+- `state.corrupt` — `sync-state.json` could not be parsed or failed schema validation; includes a `reason` field (`read-error`, `invalid-json`, `not-an-object`).
+- `state.schema-mismatch` — state file has an unexpected `schemaVersion`; includes `expected` and `found` fields. Plugin treats the file as absent and triggers first-sync.
+- `gh.ratelimit.warn` — rate-limit remaining dropped below 100; includes `remaining` and `resetAt` (Unix timestamp).
 
 ---
 

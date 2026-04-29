@@ -12,7 +12,7 @@ The full design specification is at `docs/design-specification.md` and is the au
 
 ## Project status
 
-Phase 0 (scaffold) is complete. Phase 1 (core implementation) is next.
+Phase 0 (scaffold) is complete. Phase 1 (core libs) is complete. Phase 2 (sync engine) is next.
 
 ## Build commands
 
@@ -53,13 +53,16 @@ If the session opens with a message that is solely an issue number (e.g. `#40` o
 
 ## Architecture
 
-Six modules (see §3 of the design spec for the ASCII diagram):
+Core modules (see §3 of the design spec for the ASCII diagram):
 
-- **`src/github-client.ts`** — Thin wrapper around Obsidian's `requestUrl`. Handles auth, rate-limit headers, exponential backoff on 429, base64 encode/decode. No Octokit (bundle weight). Must use `requestUrl`, not `fetch` — `fetch` fails CORS in the renderer.
-- **`src/state-store.ts`** — Owns `sync-state.json` (paths → SHA-256 hashes + blob SHAs + last commit SHA). Atomic writes via temp-file-and-rename. This is the plugin's own index, not git's index.
-- **`src/sync-engine.ts`** — State machine for a single sync invocation. Pre-flight → local scan → remote tree fetch → classify → conflict resolution → pull → push → save state. Max 2 retries on ref-update race (422 fast-forward failure).
-- **`src/logger.ts`** — JSONL log to `.obsidian/plugins/<id>/sync.log`. Never logs PAT or file contents. Rotates at 1 MB.
-- **`src/ui/`** — Settings tab, ribbon icon, status bar, conflict resolution modal, first-sync modal.
+- **`src/github-client.ts`** — Thin wrapper around Obsidian's `requestUrl`. Handles auth, rate-limit headers, exponential backoff on 429/5xx, base64 encode/decode (`encodeBase64Chunked`). Exports six typed error classes (`GHAuthError`, `GHNotFoundError`, `GHRateLimitError`, `GHFastForwardError`, `GHNetworkError`, `GHServerError`). No Octokit. Must use `requestUrl`, not `fetch` — `fetch` fails CORS in the renderer.
+- **`src/state-store.ts`** — Owns `sync-state.json` (paths → SHA-256 hashes + blob SHAs + last commit SHA). Atomic writes via temp-file-and-rename. Uses a `StateAdapter` interface (not `DataAdapter` directly) for testability. This is the plugin's own index, not git's index.
+- **`src/hash.ts`** — `sha256(bytes)` and `gitBlobSha1(bytes)` utilities. Both use `crypto.subtle.digest`. `gitBlobSha1` is used at first-sync to identify identical files without downloading them.
+- **`src/logger.ts`** — JSONL log to `.obsidian/plugins/<id>/sync.log`. Never logs PAT or file contents. Rotates at 1 MB. PAT scrubbed from all log lines via string replacement and a header regex.
+- **`src/settings.ts`** — `Settings` interface and `DEFAULT_SETTINGS` constant. Covers PAT, repo, conflict policy, per-file size limit, device name, include-obsidian-config, exclude patterns, verbose logging.
+- **`src/constants.ts`** — `PLUGIN_ID`, `SELF_EXCLUDED_PATHS` (hard-excludes `data.json`, `sync-state.json`, `.tmp`, `sync.log`, `.log.1`), and `BINARY_EXTENSIONS` set.
+- **`src/sync-engine.ts`** — State machine for a single sync invocation. Pre-flight → local scan → remote tree fetch → classify → conflict resolution → pull → push → save state. Max 2 retries on ref-update race (422 fast-forward failure). *(Phase 2 — not yet implemented)*
+- **`src/ui/`** — Settings tab, ribbon icon, status bar, conflict resolution modal, first-sync modal. *(Phase 3/4 — not yet implemented)*
 - **`src/main.ts`** — Plugin entry point, registers ribbon icon and command, handles Android detection.
 
 ## Key design constraints
@@ -70,7 +73,7 @@ These are hard constraints that bind every implementation decision:
 - **No streaming** — `requestUrl` buffers full responses. All file I/O is whole-file.
 - **Vault I/O** — always through `app.vault` (preferred) and `app.vault.adapter` (for dotfiles outside `getFiles()` reach). Never direct filesystem access.
 - **Web Crypto only** — SHA-256 via `crypto.subtle.digest`. SHA-1 (for git blob SHA computation) via `crypto.subtle.digest('SHA-1', ...)`.
-- **Self-exclusion** — the plugin's `data.json`, `sync-state.json`, and `sync.log` must be hard-excluded from sync, always, regardless of user settings.
+- **Self-exclusion** — the plugin's `data.json`, `sync-state.json`, `sync-state.json.tmp`, `sync.log`, and `sync.log.1` must be hard-excluded from sync, always, regardless of user settings. These are listed in `SELF_EXCLUDED_PATHS` in `src/constants.ts`.
 
 ## Sync algorithm
 
