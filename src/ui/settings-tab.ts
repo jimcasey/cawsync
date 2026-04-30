@@ -99,12 +99,15 @@ export class JackdawSettingsTab extends PluginSettingTab {
 					.setPlaceholder(String(DEFAULT_SETTINGS.perFileSizeLimitMb))
 					.setValue(String(this.plugin.settings.perFileSizeLimitMb))
 					.onChange(async value => {
-						const parsed = parseInt(value, 10);
-						if (!Number.isInteger(parsed) || parsed < 0) {
+						if (!/^\d+$/.test(value)) {
 							sizeLimitSetting.setDesc('⚠ Enter a whole number between 0 and 100.');
 							return;
 						}
+						const parsed = parseInt(value, 10);
 						const clamped = Math.min(parsed, 100);
+						if (clamped !== parsed) {
+							text.setValue(String(clamped));
+						}
 						sizeLimitSetting.setDesc('Files larger than this limit are skipped. Must be a whole number between 0 and 100.');
 						this.plugin.settings.perFileSizeLimitMb = clamped;
 						await this.plugin.saveSettings();
