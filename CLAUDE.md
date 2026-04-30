@@ -41,10 +41,11 @@ If the session opens with a message that is solely an issue number (e.g. `#40` o
 
 1. Fetch the issue from `jimcasey/jackdaw` using the GitHub MCP tools.
 2. Read the issue body and any linked design-spec sections to understand the requirements.
-3. Create (or check out) the appropriate feature branch following the repo's branch-naming convention.
-4. Implement the issue — writing code, tests, and any doc updates required.
-5. Commit and push to the feature branch.
-6. Do **not** open a pull request unless the user explicitly asks for one.
+3. Update local `main` from the remote (`git checkout main && git pull --ff-only origin main`) so the new branch starts from the latest base. If `main` is already checked out, just pull.
+4. Create (or check out) the appropriate feature branch following the repo's branch-naming convention, branching from the freshly-updated `main`.
+5. Implement the issue — writing code, tests, and any doc updates required.
+6. Commit and push to the feature branch.
+7. Open a pull request following the repo's PR conventions (short title, body with summary + test plan, `Closes #N` or `Fixes #N` in the body so the issue auto-closes on merge).
 
 ## Pull requests
 
