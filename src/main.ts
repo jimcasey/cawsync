@@ -4,13 +4,13 @@ import { JackdawSettingsTab } from './ui/settings-tab';
 import { RibbonIcon } from './ui/ribbon';
 import { StatusBar } from './ui/status-bar';
 import { ConflictResolutionModal } from './ui/modals/conflict-resolution-modal';
+import { FirstSyncModal } from './ui/modals/first-sync-modal';
 import { GitHubClient } from './github-client';
 import { Logger } from './logger';
 import { ObsidianStateAdapter } from './obsidian-state-adapter';
 import { StateStore } from './state-store';
 import { ObsidianVaultAdapter } from './obsidian-vault-adapter';
 import { SyncEngine } from './sync-engine';
-import { PolicyBasedResolver } from './sync-engine-types';
 import type { SyncResult } from './sync-engine-types';
 import { formatSyncOutcome } from './sync-notice';
 
@@ -55,13 +55,12 @@ export default class JackdawPlugin extends Plugin {
 			logger,
 		);
 
-		const policyResolver = new PolicyBasedResolver(() => this.settings.conflictPolicy);
-		const conflictModal = new ConflictResolutionModal(
-			this.app,
-			vault,
-			client,
-			() => ({ owner: this.settings.owner, repo: this.settings.repo }),
-		);
+		const repoCoords = (): { owner: string; repo: string } => ({
+			owner: this.settings.owner,
+			repo: this.settings.repo,
+		});
+		const conflictModal = new ConflictResolutionModal(this.app, vault, client, repoCoords);
+		const firstSyncModal = new FirstSyncModal(this.app, vault, client, repoCoords);
 
 		this.engine = new SyncEngine(
 			vault,
@@ -70,7 +69,7 @@ export default class JackdawPlugin extends Plugin {
 			logger,
 			() => this.settings,
 			conflictModal,
-			policyResolver,
+			firstSyncModal,
 		);
 
 		if (!Platform.isMobileApp) {
