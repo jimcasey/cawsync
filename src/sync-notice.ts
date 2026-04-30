@@ -51,6 +51,12 @@ export function formatSyncOutcome(
 					statusBar: { kind: 'error', message: SYNC_NEEDS_UI_STATUS },
 				};
 			}
+			if (result.error.name === 'GHEmptyRepoError') {
+				return {
+					toasts: [result.error.message],
+					statusBar: { kind: 'error', message: 'Repo has no commits yet' },
+				};
+			}
 			return {
 				toasts: [`Sync failed: ${result.error.message}. See log for details.`],
 				statusBar: { kind: 'error', message: result.error.message },

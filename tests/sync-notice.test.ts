@@ -105,6 +105,23 @@ describe('formatSyncOutcome', () => {
 		});
 	});
 
+	test('GHEmptyRepoError produces actionable message and short status bar text', () => {
+		const err = Object.assign(
+			new Error('The repository exists but has no commits yet. Push an initial commit (e.g. a README) and try again.'),
+			{ name: 'GHEmptyRepoError' },
+		);
+		const result: SyncResult = { status: 'error', error: err };
+		const outcome = formatSyncOutcome(result, now, null);
+
+		expect(outcome.toasts).toEqual([
+			'The repository exists but has no commits yet. Push an initial commit (e.g. a README) and try again.',
+		]);
+		expect(outcome.statusBar).toEqual({
+			kind: 'error',
+			message: 'Repo has no commits yet',
+		});
+	});
+
 	test('generic error includes the error message and points to the log', () => {
 		const result: SyncResult = {
 			status: 'error',

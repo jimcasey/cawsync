@@ -11,6 +11,7 @@ import {
 	GitHubClient,
 	GHAuthError,
 	GHNotFoundError,
+	GHEmptyRepoError,
 	GHRateLimitError,
 	GHFastForwardError,
 	GHNetworkError,
@@ -152,6 +153,14 @@ describe('GitHubClient', () => {
 			const { client } = makeClient();
 
 			await expect(call(client, 'GET', '/repos/testowner/testrepo/git/refs/heads/missing')).rejects.toThrow(GHNotFoundError);
+			expect(mockRequestUrl).toHaveBeenCalledTimes(1);
+		});
+
+		test('409 raises GHEmptyRepoError and never retries', async () => {
+			mockRequestUrl.mockResolvedValue(makeResponse(409, { message: 'Git Repository is empty.' }));
+			const { client } = makeClient();
+
+			await expect(call(client, 'GET', '/repos/testowner/testrepo/git/refs/heads')).rejects.toThrow(GHEmptyRepoError);
 			expect(mockRequestUrl).toHaveBeenCalledTimes(1);
 		});
 
@@ -308,6 +317,37 @@ describe('domain methods', () => {
 			expect(arg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/branches/main`);
 			expect(arg.method).toBe('GET');
 			expect(result).toEqual({ commitSha: 'commit-abc', treeSha: 'tree-xyz' });
+		});
+
+		test('throws GHEmptyRepoError when branch 404 probe returns 409', async () => {
+			const { client } = makeClient();
+			// First call: branch endpoint 404; second call: refs/heads returns 409 (empty repo)
+			mockRequestUrl
+				.mockResolvedValueOnce(makeResponse(404, { message: 'Not Found' }))
+				.mockResolvedValueOnce(makeResponse(409, { message: 'Git Repository is empty.' }));
+
+			await expect(client.getBranch(OWNER, REPO, 'main')).rejects.toThrow(GHEmptyRepoError);
+			expect(mockRequestUrl).toHaveBeenCalledTimes(2);
+			const probeArg = mockRequestUrl.mock.calls[1][0] as { url: string };
+			expect(probeArg.url).toBe(`https://api.github.com/repos/${OWNER}/${REPO}/git/refs/heads`);
+		});
+
+		test('throws GHNotFoundError when branch 404 probe also returns 404 (repo missing)', async () => {
+			const { client } = makeClient();
+			mockRequestUrl
+				.mockResolvedValueOnce(makeResponse(404, { message: 'Not Found' }))
+				.mockResolvedValueOnce(makeResponse(404, { message: 'Not Found' }));
+
+			await expect(client.getBranch(OWNER, REPO, 'main')).rejects.toThrow(GHNotFoundError);
+		});
+
+		test('throws GHNotFoundError when branch 404 probe returns 200 (wrong branch name)', async () => {
+			const { client } = makeClient();
+			mockRequestUrl
+				.mockResolvedValueOnce(makeResponse(404, { message: 'Not Found' }))
+				.mockResolvedValueOnce(makeResponse(200, [{ ref: 'refs/heads/main' }]));
+
+			await expect(client.getBranch(OWNER, REPO, 'typo-branch')).rejects.toThrow(GHNotFoundError);
 		});
 	});
 

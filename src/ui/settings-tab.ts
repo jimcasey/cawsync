@@ -1,6 +1,6 @@
 import { App, Modal, Notice, PluginSettingTab, Setting } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../settings';
-import { GitHubClient, GHAuthError, GHNotFoundError } from '../github-client';
+import { GitHubClient, GHAuthError, GHNotFoundError, GHEmptyRepoError } from '../github-client';
 import { PLUGIN_ID } from '../constants';
 import type JackdawPlugin from '../main';
 
@@ -182,6 +182,11 @@ export class JackdawSettingsTab extends PluginSettingTab {
 					} catch (err) {
 						if (err instanceof GHAuthError) {
 							new Notice('Authentication failed — check your PAT');
+						} else if (err instanceof GHEmptyRepoError) {
+							const { branch } = this.plugin.settings;
+							new Notice(
+								`Repo exists but has no commits yet. Push an initial commit to "${branch}" and try again.`,
+							);
 						} else if (err instanceof GHNotFoundError) {
 							new Notice('Repo or branch not found, or PAT lacks access');
 						} else {

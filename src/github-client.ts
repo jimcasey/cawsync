@@ -27,6 +27,10 @@ export class GHFastForwardError extends Error {
 	override readonly name = 'GHFastForwardError';
 }
 
+export class GHEmptyRepoError extends Error {
+	override readonly name = 'GHEmptyRepoError';
+}
+
 export class GHNetworkError extends Error {
 	override readonly name = 'GHNetworkError';
 }
@@ -206,6 +210,12 @@ export class GitHubClient {
 				continue;
 			}
 
+			if (status === 409) {
+				throw new GHEmptyRepoError(
+					`The repository exists but has no commits yet. Push an initial commit (e.g. a README) and try again.`,
+				);
+			}
+
 			if (status === 422) {
 				throw new GHFastForwardError(
 					`Ref update rejected (fast-forward required). Another client may have pushed to the branch.`,
@@ -236,10 +246,22 @@ export class GitHubClient {
 	}
 
 	async getBranch(owner: string, repo: string, branch: string): Promise<{ commitSha: string; treeSha: string }> {
-		const data = (await this.request('GET', `/repos/${owner}/${repo}/branches/${branch}`)) as {
-			commit: { sha: string; commit: { tree: { sha: string } } };
-		};
-		return { commitSha: data.commit.sha, treeSha: data.commit.commit.tree.sha };
+		try {
+			const data = (await this.request('GET', `/repos/${owner}/${repo}/branches/${branch}`)) as {
+				commit: { sha: string; commit: { tree: { sha: string } } };
+			};
+			return { commitSha: data.commit.sha, treeSha: data.commit.commit.tree.sha };
+		} catch (err) {
+			if (!(err instanceof GHNotFoundError)) throw err;
+			// Probe to distinguish empty-repo from missing-repo/branch: /git/refs/heads returns
+			// 409 for empty repos, 200 for repos with commits, 404 if repo is missing/inaccessible.
+			try {
+				await this.request('GET', `/repos/${owner}/${repo}/git/refs/heads`);
+			} catch (probeErr) {
+				if (probeErr instanceof GHEmptyRepoError) throw probeErr;
+			}
+			throw err;
+		}
 	}
 
 	async getTree(owner: string, repo: string, treeSha: string, recursive: boolean): Promise<TreeResponse> {
