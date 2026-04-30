@@ -210,7 +210,7 @@ export class GitHubClient {
 				continue;
 			}
 
-			if (status === 409) {
+			if (status === 409 && safeBody.includes('Git Repository is empty')) {
 				throw new GHEmptyRepoError(
 					`The repository exists but has no commits yet. Push an initial commit (e.g. a README) and try again.`,
 				);

@@ -156,11 +156,19 @@ describe('GitHubClient', () => {
 			expect(mockRequestUrl).toHaveBeenCalledTimes(1);
 		});
 
-		test('409 raises GHEmptyRepoError and never retries', async () => {
+		test('409 with "Git Repository is empty" body raises GHEmptyRepoError and never retries', async () => {
 			mockRequestUrl.mockResolvedValue(makeResponse(409, { message: 'Git Repository is empty.' }));
 			const { client } = makeClient();
 
 			await expect(call(client, 'GET', '/repos/testowner/testrepo/git/refs/heads')).rejects.toThrow(GHEmptyRepoError);
+			expect(mockRequestUrl).toHaveBeenCalledTimes(1);
+		});
+
+		test('409 with unrecognized body falls through to GHServerError', async () => {
+			mockRequestUrl.mockResolvedValue(makeResponse(409, { message: 'Merge conflict' }));
+			const { client } = makeClient();
+
+			await expect(call(client, 'GET', '/repos/testowner/testrepo/merge')).rejects.toThrow(GHServerError);
 			expect(mockRequestUrl).toHaveBeenCalledTimes(1);
 		});
 
