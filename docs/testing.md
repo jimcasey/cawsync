@@ -23,7 +23,7 @@ Before signing off on any phase from Phase 3 onward, smoke-test the plugin in Ob
 
 ## iOS manual testing (Phase 5 gate)
 
-Run on a **physical iPhone** — this cannot be delegated or automated.
+Corresponds to §11.3 of the design specification. Run on a **physical iPhone** — this cannot be delegated or automated.
 
 **Setup:**
 1. Install Obsidian on the iPhone.
@@ -34,7 +34,7 @@ Run on a **physical iPhone** — this cannot be delegated or automated.
 
 | # | Scenario | Expected |
 |---|---|---|
-| 1 | First sync against an empty-ish test repo with a few existing files | First-sync modal appears; files are pulled; state is saved |
+| 1 | First sync against an empty-ish test repo with a few existing files | First-sync modal appears; files are pulled; state is saved *(requires Phase 4)* |
 | 2 | Edit a note on iOS only, then sync | Changed file is pushed to GitHub; no pull activity |
 | 3 | Edit a file via GitHub web UI, then sync from iOS | File is pulled and updated in vault; no push |
 | 4 | Edit the same file both locally and on GitHub, then sync | Conflict UI appears; resolving with either option applies cleanly |
@@ -48,7 +48,7 @@ Phase 5 does not close until all scenarios pass.
 
 ## Obsidian Sync coexistence testing (Phase 5 gate)
 
-Requires **two physical devices** both running Obsidian Sync and the Jackdaw plugin connected to the same vault and same test GitHub repo.
+Corresponds to §11.4 of the design specification. Requires **two physical devices** both running Obsidian Sync and the Jackdaw plugin connected to the same vault and same test GitHub repo.
 
 **Scenarios:**
 
@@ -61,5 +61,5 @@ Requires **two physical devices** both running Obsidian Sync and the Jackdaw plu
    - Expected: staleness is detected (local content hash matches remote blob hash despite differing from recorded state); file is treated as a no-op; state is updated silently.
 
 3. **Three-way conflict**
-   - Edit a file on device A, edit a *different* file on device B, and make a third edit via the GitHub web UI → sync from one device.
-   - Expected: only the file edited both locally and remotely appears in the conflict UI; the other file is pushed or pulled cleanly.
+   - Edit file X on device A. Edit file X via the GitHub web UI (creating a conflict on file X). Edit a different file Y on device B. Sync from device A.
+   - Expected: file X appears in the conflict UI; file Y is pushed cleanly; resolving the conflict applies without errors.

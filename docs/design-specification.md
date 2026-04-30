@@ -187,7 +187,7 @@ If `sync-state.json` does not exist, jump to §7 (mass-conflict flow). Do not pr
 ### 5.3 Build the local change set
 
 Before walking, build the exclusion filter:
-1. Start with the plugin's hard-excluded paths: `data.json`, `sync-state.json`, `sync.log` (all under `.obsidian/plugins/<our-id>/`).
+1. Start with the plugin's hard-excluded paths: `data.json`, `sync-state.json`, `sync-state.json.tmp`, `sync.log`, `sync.log.1` (all under `.obsidian/plugins/<our-id>/`).
 2. If a `.gitignore` file exists at the vault root, read it and parse its positive patterns (lines that are not blank, not comments, and do not begin with `!`) into the exclusion list. Negation lines (`!pattern`) are silently ignored for v1.
 3. Append user-configured exclude patterns from settings.
 
@@ -453,6 +453,7 @@ Sections:
 
 - **Ribbon icon** (sync icon, both desktop and mobile). Click = run sync. While syncing, icon spins.
 - **Command palette entry:** "Sync with GitHub" (same action).
+- **Concurrency guard:** ribbon clicks and command invocations are ignored while a sync is already in progress.
 - **Status bar** (desktop only — mobile doesn't have a status bar): "Synced HH:MM" or "Never synced" or "Syncing…" or "Sync error (click for details)."
 
 ### 8.3 Conflict resolution modal
