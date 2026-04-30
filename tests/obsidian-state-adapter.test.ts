@@ -8,6 +8,7 @@ function makeDataAdapter(): DataAdapter {
 		read: vi.fn(),
 		write: vi.fn(),
 		rename: vi.fn(),
+		remove: vi.fn(),
 	} as unknown as DataAdapter;
 }
 
@@ -49,5 +50,13 @@ describe('ObsidianStateAdapter', () => {
 		const adapter = new ObsidianStateAdapter(da);
 		await adapter.rename('old/path', 'new/path');
 		expect(da.rename).toHaveBeenCalledWith('old/path', 'new/path');
+	});
+
+	test('remove forwards path unchanged', async () => {
+		const da = makeDataAdapter();
+		vi.mocked(da.remove).mockResolvedValue();
+		const adapter = new ObsidianStateAdapter(da);
+		await adapter.remove('some/path');
+		expect(da.remove).toHaveBeenCalledWith('some/path');
 	});
 });
