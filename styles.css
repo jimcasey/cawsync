@@ -31,7 +31,7 @@
 }
 
 .jackdaw-conflict-row.jackdaw-resolved {
-  background: var(--background-modifier-success-rgb, var(--background-secondary));
+  background: var(--background-secondary);
 }
 
 .jackdaw-conflict-row-header {
@@ -132,13 +132,13 @@
 
 .jackdaw-diff-remove {
   grid-column: 1 / 2;
-  background: var(--background-modifier-error-rgb, rgba(220, 53, 69, 0.15));
+  background: var(--background-modifier-error);
   color: var(--text-error);
 }
 
 .jackdaw-diff-add {
   grid-column: 2 / 3;
-  background: var(--background-modifier-success-rgb, rgba(40, 167, 69, 0.15));
+  background: var(--background-modifier-success);
   color: var(--text-success);
 }
 

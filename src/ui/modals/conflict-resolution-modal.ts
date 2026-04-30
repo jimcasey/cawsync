@@ -129,7 +129,7 @@ export class ConflictResolutionModal extends Modal implements ConflictResolver {
 	private renderVisible(): void {
 		if (!this.listEl || !this.spacerEl) return;
 
-		const window = computeVirtualWindow({
+		const view = computeVirtualWindow({
 			scrollTop: this.listEl.scrollTop,
 			viewportHeight: this.listEl.clientHeight,
 			itemCount: this.conflicts.length,
@@ -137,15 +137,12 @@ export class ConflictResolutionModal extends Modal implements ConflictResolver {
 			overscan: OVERSCAN,
 		});
 
-		this.spacerEl.style.height = `${window.totalHeight}px`;
+		this.spacerEl.style.height = `${view.totalHeight}px`;
 
 		const visiblePaths = new Set<string>();
-		let cumulative = 0;
-		for (let i = 0; i < window.startIndex; i++) {
-			cumulative += this.getRowHeight(i);
-		}
+		let cumulative = view.offsetY;
 
-		for (let i = window.startIndex; i < window.endIndex; i++) {
+		for (let i = view.startIndex; i < view.endIndex; i++) {
 			const item = this.conflicts[i];
 			visiblePaths.add(item.path);
 			let controller = this.rowControllers.get(item.path);
@@ -157,14 +154,14 @@ export class ConflictResolutionModal extends Modal implements ConflictResolver {
 					onSelect: (resolution) => this.handleSelect(item.path, resolution),
 					onToggle: () => this.handleToggle(item),
 				});
+				controller.el.style.position = 'absolute';
+				controller.el.style.left = '0';
+				controller.el.style.right = '0';
 				this.rowControllers.set(item.path, controller);
 				this.spacerEl.appendChild(controller.el);
 				const cached = this.contentCache.get(item.path);
 				if (cached) controller.setContent(cached);
 			}
-			controller.el.style.position = 'absolute';
-			controller.el.style.left = '0';
-			controller.el.style.right = '0';
 			controller.el.style.top = `${cumulative}px`;
 			cumulative += this.getRowHeight(i);
 		}

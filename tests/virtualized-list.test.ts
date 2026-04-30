@@ -81,10 +81,9 @@ describe('computeVirtualWindow', () => {
 			getItemHeight: (i) => heights[i],
 			overscan: 0,
 		});
-		// Cumulative: [0, 40, 100, 180, 280, 400]
-		// scrollTop=150 → first item with bottom>150: index 2 (cumulative 100..180)
-		// bottom=250 → first item with top>=250: index 4 (top 280>=250 → wait, 280>=250)
-		// Actually: scan ends when cumulative >= bottom (250). cumulative reaches 280 at i=4.
+		// Cumulative tops: [0, 40, 100, 180, 280, 400]
+		// scrollTop=150 → first item whose bottom > 150 is index 2 (spans 100..180), offsetY=100
+		// bottom=250 → endIndex set when cumulative top >= 250, which happens at index 4 (top=280)
 		expect(win.startIndex).toBe(2);
 		expect(win.offsetY).toBe(100);
 		expect(win.endIndex).toBe(4);
