@@ -245,7 +245,10 @@ class SyncLogModal extends Modal {
 
 	onOpen(): void {
 		this.titleEl.setText('Sync log');
-		this.contentEl.createEl('pre', { text: this.contents });
+		this.contentEl.createEl('pre', {
+			text: this.contents,
+			attr: { style: 'max-width:100%;overflow-x:auto;' },
+		});
 		new Setting(this.contentEl)
 			.addButton(btn => btn.setButtonText('Close').onClick(() => this.close()));
 	}
