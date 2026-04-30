@@ -36,7 +36,7 @@ describe('Logger', () => {
 	});
 
 	test('emits one JSON line per write in JSONL format', async () => {
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.info('sync.start');
 		await logger.info('sync.complete', { duration: 100 });
 
@@ -56,7 +56,7 @@ describe('Logger', () => {
 	});
 
 	test('spreads fields into the top-level JSON object', async () => {
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.warn('sync.conflicts', { count: 3, paths: ['a.md', 'b.md'] });
 
 		const line = adapter.store[LOG_PATH].trim();
@@ -69,7 +69,7 @@ describe('Logger', () => {
 		const priorContent = 'x'.repeat(MAX_BYTES);
 		adapter = makeAdapter({ [LOG_PATH]: priorContent });
 
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.info('sync.start');
 
 		expect(adapter.store[BACKUP_PATH]).toBe(priorContent);
@@ -85,7 +85,7 @@ describe('Logger', () => {
 		const oldBackup = 'old backup content';
 		adapter = makeAdapter({ [LOG_PATH]: priorContent, [BACKUP_PATH]: oldBackup });
 
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.info('sync.start');
 
 		expect(adapter.store[BACKUP_PATH]).toBe(priorContent);
@@ -96,7 +96,7 @@ describe('Logger', () => {
 		const smallContent = '{"ts":"2026-01-01","level":"info","event":"sync.start"}\n';
 		adapter = makeAdapter({ [LOG_PATH]: smallContent });
 
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.info('sync.complete');
 
 		expect(adapter.rename).not.toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe('Logger', () => {
 
 	test('scrubs PAT from field values', async () => {
 		const pat = 'ghp_supersecrettoken';
-		const logger = new Logger(adapter as never, PREFIX, true, () => pat);
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => pat);
 		await logger.info('sync.error', { message: `failed with token ${pat}` });
 
 		const line = adapter.store[LOG_PATH].trim();
@@ -116,7 +116,7 @@ describe('Logger', () => {
 
 	test('scrubs Authorization Bearer value', async () => {
 		const pat = 'ghp_mytoken';
-		const logger = new Logger(adapter as never, PREFIX, true, () => pat);
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => pat);
 		await logger.info('api.call', { header: 'Authorization: Bearer ghp_mytoken' });
 
 		const line = adapter.store[LOG_PATH].trim();
@@ -125,7 +125,7 @@ describe('Logger', () => {
 	});
 
 	test('scrubs Authorization header even when PAT is unknown', async () => {
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.info('api.call', { header: 'Authorization: Bearer someOtherToken' });
 
 		const line = adapter.store[LOG_PATH].trim();
@@ -134,7 +134,7 @@ describe('Logger', () => {
 	});
 
 	test('debug is silent when verbose logging is off', async () => {
-		const logger = new Logger(adapter as never, PREFIX, false, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => false, () => '');
 		await logger.debug('sync.pull.file', { path: 'notes/a.md' });
 
 		expect(adapter.append).not.toHaveBeenCalled();
@@ -142,7 +142,7 @@ describe('Logger', () => {
 	});
 
 	test('debug emits when verbose logging is on', async () => {
-		const logger = new Logger(adapter as never, PREFIX, true, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => true, () => '');
 		await logger.debug('sync.pull.file', { path: 'notes/a.md' });
 
 		const line = adapter.store[LOG_PATH].trim();
@@ -153,7 +153,7 @@ describe('Logger', () => {
 	});
 
 	test('warn and error always emit regardless of verbose flag', async () => {
-		const logger = new Logger(adapter as never, PREFIX, false, () => '');
+		const logger = new Logger(adapter as never, PREFIX, () => false, () => '');
 		await logger.warn('sync.conflicts', { count: 1 });
 		await logger.error('sync.error', { message: 'boom' });
 

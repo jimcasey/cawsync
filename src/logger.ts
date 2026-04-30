@@ -10,19 +10,24 @@ const MAX_BYTES = 1024 * 1024; // 1 MB
 export class Logger {
 	private adapter: DataAdapter;
 	private prefix: string;
-	private verbose: boolean;
+	private getVerbose: () => boolean;
 	private getPat: () => string;
 
-	constructor(adapter: DataAdapter, prefix: string, verbose: boolean, getPat: () => string) {
+	constructor(
+		adapter: DataAdapter,
+		prefix: string,
+		getVerbose: () => boolean,
+		getPat: () => string,
+	) {
 		this.adapter = adapter;
 		this.prefix = prefix;
-		this.verbose = verbose;
+		this.getVerbose = getVerbose;
 		this.getPat = getPat;
 	}
 
 	// Never log file contents.
 	debug(event: string, fields?: Fields): Promise<void> {
-		if (!this.verbose) return Promise.resolve();
+		if (!this.getVerbose()) return Promise.resolve();
 		return this.emit('debug', event, fields);
 	}
 

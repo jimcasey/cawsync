@@ -1,58 +1,143 @@
-import { Notice, Platform, Plugin } from 'obsidian';
+import { App, Notice, Platform, Plugin, PluginSettingTab } from 'obsidian';
 import { Settings, DEFAULT_SETTINGS } from './settings';
 import { JackdawSettingsTab } from './ui/settings-tab';
 import { RibbonIcon } from './ui/ribbon';
 import { StatusBar } from './ui/status-bar';
 import { GitHubClient } from './github-client';
+import { Logger } from './logger';
+import { ObsidianStateAdapter } from './obsidian-state-adapter';
+import { StateStore } from './state-store';
+import { ObsidianVaultAdapter } from './obsidian-vault-adapter';
+import { SyncEngine } from './sync-engine';
+import { PolicyBasedResolver } from './sync-engine-types';
+import type { SyncResult } from './sync-engine-types';
+import { formatSyncOutcome } from './sync-notice';
 
 export default class JackdawPlugin extends Plugin {
 	settings!: Settings;
-	private client!: GitHubClient;
+	private engine?: SyncEngine;
+	private ribbon?: RibbonIcon;
+	private statusBar?: StatusBar;
+	private lastSyncAt: string | null = null;
+	private isRunningSync = false;
 
 	async onload(): Promise<void> {
+		await this.loadSettings();
+
 		if (Platform.isAndroidApp) {
-			new Notice('Jackdaw: This plugin is not supported on Android. iOS and desktop only.');
+			this.addSettingTab(new AndroidUnsupportedSettingsTab(this.app, this));
 			return;
 		}
 
-		await this.loadSettings();
+		const pluginFolder = `${this.app.vault.configDir}/plugins/${this.manifest.id}`;
 
-		this.client = new GitHubClient(
+		const logger = new Logger(
+			this.app.vault.adapter,
+			pluginFolder,
+			() => this.settings.verboseLogging,
+			() => this.settings.pat,
+		);
+
+		const stateStore = new StateStore(
+			new ObsidianStateAdapter(this.app.vault.adapter),
+			pluginFolder,
+			logger,
+		);
+
+		const vault = new ObsidianVaultAdapter(this.app);
+
+		const client = new GitHubClient(
 			() => this.settings.pat,
 			() => this.settings.owner,
 			() => this.settings.repo,
 			this.manifest.version,
+			logger,
 		);
 
-		this.addSettingTab(new JackdawSettingsTab(this.app, this, this.client));
+		const resolver = new PolicyBasedResolver(this.settings.conflictPolicy);
 
-		let statusBar: StatusBar | undefined;
+		this.engine = new SyncEngine(
+			vault,
+			client,
+			stateStore,
+			logger,
+			() => this.settings,
+			resolver,
+			resolver,
+		);
+
 		if (!Platform.isMobileApp) {
-			statusBar = new StatusBar(this.addStatusBarItem());
+			this.statusBar = new StatusBar(this.addStatusBarItem());
+			try {
+				const initial = await stateStore.load();
+				if (initial) {
+					this.lastSyncAt = initial.lastSyncAt;
+					this.statusBar.setIdle(initial.lastSyncAt);
+				}
+			} catch {
+				// Seeding the status bar is best-effort; sync itself will surface real errors.
+			}
 		}
 
-		const syncAction = async (): Promise<void> => {
-			ribbon.setSyncing();
-			statusBar?.setSyncing();
-			try {
-				// TODO: wire sync engine
-				new Notice('Jackdaw: Sync coming soon');
-			} finally {
-				ribbon.setIdle();
-				statusBar?.setIdle(null);
-			}
+		this.addSettingTab(new JackdawSettingsTab(this.app, this, client));
+
+		const trigger = (): void => {
+			void this.runSync();
 		};
 
-		const ribbon = new RibbonIcon(this, syncAction);
+		this.ribbon = new RibbonIcon(this, trigger);
 
 		this.addCommand({
 			id: 'sync-vault',
 			name: 'Sync with GitHub',
-			callback: syncAction,
+			callback: trigger,
 		});
 	}
 
-	onunload(): void {}
+	async runSync(): Promise<void> {
+		if (!this.engine) return;
+		// Guard at the UI layer: without this, a second click while a sync is in
+		// flight would flip the spinner off in its own finally block — even though
+		// the first sync is still running.
+		if (this.isRunningSync) return;
+		this.isRunningSync = true;
+		this.statusBar?.setSyncing();
+		this.ribbon?.setSyncing();
+		try {
+			const result = await this.engine.sync();
+			this.handleSyncResult(result);
+		} finally {
+			this.ribbon?.setIdle();
+			this.isRunningSync = false;
+		}
+	}
+
+	private handleSyncResult(result: SyncResult): void {
+		const outcome = formatSyncOutcome(
+			result,
+			() => new Date().toISOString(),
+			this.lastSyncAt,
+		);
+
+		for (const toast of outcome.toasts) {
+			new Notice(toast);
+		}
+
+		if (outcome.statusBar.kind === 'idle') {
+			if (outcome.statusBar.lastSyncAt !== null) {
+				this.lastSyncAt = outcome.statusBar.lastSyncAt;
+			}
+			this.statusBar?.setIdle(outcome.statusBar.lastSyncAt);
+		} else {
+			this.statusBar?.setError(outcome.statusBar.message);
+		}
+	}
+
+	onunload(): void {
+		this.statusBar = undefined;
+		this.ribbon = undefined;
+		this.engine = undefined;
+	}
 
 	async loadSettings(): Promise<void> {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -60,5 +145,20 @@ export default class JackdawPlugin extends Plugin {
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
+	}
+}
+
+class AndroidUnsupportedSettingsTab extends PluginSettingTab {
+	constructor(app: App, plugin: JackdawPlugin) {
+		super(app, plugin);
+	}
+
+	display(): void {
+		const { containerEl } = this;
+		containerEl.empty();
+		containerEl.createEl('h2', { text: 'Jackdaw' });
+		containerEl.createEl('p', {
+			text: 'Jackdaw is not supported on Android. The plugin works on Obsidian desktop and iOS only.',
+		});
 	}
 }
