@@ -8,7 +8,7 @@
 
 ## 1. What was built
 
-All seven implementation issues shipped. The table below summarises each module or file, its issue, its test file, and its test count.
+All seven implementation issues shipped. The table below summarises each module or file, its issue, its LOC, and its test count.
 
 | Module / File | Issue | LOC | Tests | Notes |
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ All seven implementation issues shipped. The table below summarises each module 
 
 **What shipped:** `ClassifyAction` gains a fifth value: `'state-refresh'`. The classifier emits it when staleness is detected (local blob SHA matches remote blob SHA despite both differing from state). The engine handles `'state-refresh'` paths by updating `state.files[path]` without any vault or remote I/O.
 
-**Resolution:** Using a distinct action avoids overloading `'no-op'` with engine-level side effects, keeps the engine's action dispatch table explicit, and makes the staleness path visible in tests. `sync-engine-types.ts` has been updated with the new value; CLAUDE.md §Architecture `ClassifyAction` comment reflects it.
+**Resolution:** Using a distinct action avoids overloading `'no-op'` with engine-side effects, keeps the engine's action dispatch table explicit, and makes the staleness path visible in tests. `sync-engine-types.ts` carries the updated `ClassifyAction` union; CLAUDE.md §Architecture has been updated to list the five values and document the staleness-detection behaviour.
 
 ### 2.3 `ObsidianVaultAdapter` uses a try-catch dotfile fallback rather than pre-checking
 
@@ -103,7 +103,8 @@ All seven implementation issues shipped. The table below summarises each module 
 | Integration tests (§11.2) | Phase 5 | Requires CI-owned GitHub account and per-run fresh branches |
 | End-to-end smoke test on iOS | Phase 5 / manual | §11.3 — highest-priority derisking step before release |
 | `isRunningSync` guard spec update | Next editing pass | §8.2 should note that a second click while syncing is ignored |
-| `isTFile()` pattern in CLAUDE.md | Next editing pass | Document as preferred pattern for Obsidian class identity checks |
+| CLAUDE.md architecture section | Done (this retro) | Updated to list all Phase 2/3 modules and drop stale "not yet implemented" markers |
+| `isTFile()` pattern in CLAUDE.md | Done (this retro) | Documented under `obsidian-vault-adapter.ts` entry in CLAUDE.md |
 
 ---
 
