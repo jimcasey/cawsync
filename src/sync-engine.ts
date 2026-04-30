@@ -87,7 +87,7 @@ export class SyncEngine {
 	): Promise<SyncResult> {
 		const { owner, repo, branch } = settings;
 		let fastForwardRetries = 0;
-		const policyResolver = new PolicyBasedResolver(settings.conflictPolicy);
+		const policyResolver = new PolicyBasedResolver(() => settings.conflictPolicy);
 
 		const report: SyncReport = {
 			filesAdded: 0,

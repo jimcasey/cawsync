@@ -1,3 +1,5 @@
+import type { ConflictPolicy } from './settings';
+
 export type LocalChangeType = 'added' | 'modified' | 'deleted' | 'unchanged';
 export type RemoteChangeType = 'added' | 'modified' | 'deleted' | 'unchanged';
 
@@ -90,12 +92,13 @@ export class SyncStateInconsistencyError extends Error {
 }
 
 export class PolicyBasedResolver implements ConflictResolver, FirstSyncResolver {
-	constructor(private readonly policy: 'always-prefer-local' | 'always-prefer-remote' | 'always-ask') {}
+	constructor(private readonly getPolicy: () => ConflictPolicy) {}
 
 	resolve(
 		conflicts: ConflictItem[] | FirstSyncSummary
 	): Promise<Map<string, ConflictResolution> | 'cancel'> {
-		if (this.policy === 'always-ask') {
+		const policy = this.getPolicy();
+		if (policy === 'always-ask') {
 			throw new SyncNeedsUIError();
 		}
 
@@ -104,7 +107,7 @@ export class PolicyBasedResolver implements ConflictResolver, FirstSyncResolver 
 			: (conflicts as FirstSyncSummary).conflicts;
 
 		const resolution: ConflictResolution =
-			this.policy === 'always-prefer-local' ? 'keep-local' : 'keep-remote';
+			policy === 'always-prefer-local' ? 'keep-local' : 'keep-remote';
 
 		const result = new Map<string, ConflictResolution>();
 		for (const item of items) {

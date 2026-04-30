@@ -1,9 +1,11 @@
+export type ConflictPolicy = 'always-ask' | 'always-prefer-local' | 'always-prefer-remote';
+
 export interface Settings {
 	owner: string;
 	repo: string;
 	branch: string;
 	pat: string;
-	conflictPolicy: 'always-ask' | 'always-prefer-local' | 'always-prefer-remote';
+	conflictPolicy: ConflictPolicy;
 	perFileSizeLimitMb: number;
 	deviceName: string;
 	includeObsidianConfig: boolean;

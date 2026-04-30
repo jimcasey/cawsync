@@ -54,7 +54,7 @@ export default class JackdawPlugin extends Plugin {
 			logger,
 		);
 
-		const resolver = new PolicyBasedResolver(this.settings.conflictPolicy);
+		const resolver = new PolicyBasedResolver(() => this.settings.conflictPolicy);
 
 		this.engine = new SyncEngine(
 			vault,
