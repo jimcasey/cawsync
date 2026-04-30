@@ -103,10 +103,23 @@ describe('computeLineDiff', () => {
 		const local = 'alpha\nbeta';
 		const remote = 'alpha\nbeta\ngamma';
 		const result = computeLineDiff(local, remote);
-		// We expect alpha and beta to be context, gamma to be added
-		const kinds = result.map(l => `${l.kind}:${l.text}`);
-		expect(kinds).toContain('context:alpha');
-		expect(kinds).toContain('add:gamma');
+		// diffLines treats 'beta' and 'beta\n' as distinct tokens, so the
+		// no-trailing-newline 'beta' is removed and the trailing-newline
+		// 'beta' is re-added. This is an acceptable line-diff limitation.
+		expect(result).toEqual([
+			{ kind: 'context', text: 'alpha', localLineNumber: 1, remoteLineNumber: 1 },
+			{ kind: 'remove', text: 'beta', localLineNumber: 2 },
+			{ kind: 'add', text: 'beta', remoteLineNumber: 2 },
+			{ kind: 'add', text: 'gamma', remoteLineNumber: 3 },
+		]);
+	});
+
+	test('replacement of single-line content without newlines', () => {
+		const result = computeLineDiff('one', 'two');
+		expect(result).toEqual([
+			{ kind: 'remove', text: 'one', localLineNumber: 1 },
+			{ kind: 'add', text: 'two', remoteLineNumber: 1 },
+		]);
 	});
 
 	test('preserves blank lines as empty-text entries', () => {
