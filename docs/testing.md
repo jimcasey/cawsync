@@ -8,8 +8,11 @@ Steps to configure and manually test the plugin across platforms and phases.
 
 Before signing off on any phase from Phase 3 onward, smoke-test the plugin in Obsidian desktop:
 
-1. Clone the repo into `<your-vault>/.obsidian/plugins/jackdaw/`.
-2. Run `npm install && npm run build`.
+1. Symlink the repo into your vault's plugins folder:
+   ```sh
+   ln -s /path/to/jackdaw <your-vault>/.obsidian/plugins/jackdaw
+   ```
+2. Run `npm install && npm run build` from the repo directory.
 3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Jackdaw**.
 4. Open Settings → Jackdaw and enter:
    - **PAT** — a GitHub personal access token with `repo` scope.
