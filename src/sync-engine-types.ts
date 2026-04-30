@@ -1,3 +1,5 @@
+import type { ConflictPolicy } from './settings';
+
 export type LocalChangeType = 'added' | 'modified' | 'deleted' | 'unchanged';
 export type RemoteChangeType = 'added' | 'modified' | 'deleted' | 'unchanged';
 
@@ -90,9 +92,7 @@ export class SyncStateInconsistencyError extends Error {
 }
 
 export class PolicyBasedResolver implements ConflictResolver, FirstSyncResolver {
-	constructor(
-		private readonly getPolicy: () => 'always-prefer-local' | 'always-prefer-remote' | 'always-ask',
-	) {}
+	constructor(private readonly getPolicy: () => ConflictPolicy) {}
 
 	resolve(
 		conflicts: ConflictItem[] | FirstSyncSummary
