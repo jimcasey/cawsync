@@ -12,12 +12,19 @@ function makeDataAdapter(): DataAdapter {
 }
 
 describe('ObsidianStateAdapter', () => {
-	test('exists returns the adapter value', async () => {
+	test('exists returns true when adapter returns true', async () => {
 		const da = makeDataAdapter();
 		vi.mocked(da.exists).mockResolvedValue(true);
 		const adapter = new ObsidianStateAdapter(da);
 		expect(await adapter.exists('some/path')).toBe(true);
 		expect(da.exists).toHaveBeenCalledWith('some/path');
+	});
+
+	test('exists returns false when adapter returns false', async () => {
+		const da = makeDataAdapter();
+		vi.mocked(da.exists).mockResolvedValue(false);
+		const adapter = new ObsidianStateAdapter(da);
+		expect(await adapter.exists('some/path')).toBe(false);
 	});
 
 	test('read returns the adapter value', async () => {
