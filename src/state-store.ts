@@ -25,6 +25,7 @@ export interface StateAdapter {
 	read(path: string): Promise<string>;
 	write(path: string, data: string): Promise<void>;
 	rename(from: string, to: string): Promise<void>;
+	remove(path: string): Promise<void>;
 }
 
 export class StateStore {
@@ -96,6 +97,12 @@ export class StateStore {
 	async save(state: SyncState): Promise<void> {
 		const json = this.pretty ? JSON.stringify(state, null, 2) : JSON.stringify(state);
 		await this.adapter.write(this.tmpPath, json);
+		// Obsidian's DataAdapter.rename throws "Destination file already exists!"
+		// if the destination is present, so clear it first. The load() recovery
+		// path covers the window where tmp exists but canonical does not.
+		if (await this.adapter.exists(this.canonicalPath)) {
+			await this.adapter.remove(this.canonicalPath);
+		}
 		await this.adapter.rename(this.tmpPath, this.canonicalPath);
 	}
 }

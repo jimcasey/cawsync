@@ -10,6 +10,7 @@ interface MockAdapter {
 	read: Mock;
 	write: Mock;
 	rename: Mock;
+	remove: Mock;
 }
 
 function makeAdapter(): MockAdapter {
@@ -18,6 +19,7 @@ function makeAdapter(): MockAdapter {
 		read: vi.fn(),
 		write: vi.fn().mockResolvedValue(undefined),
 		rename: vi.fn().mockResolvedValue(undefined),
+		remove: vi.fn().mockResolvedValue(undefined),
 	};
 }
 
@@ -99,6 +101,53 @@ describe('StateStore', () => {
 			`write:${TMP}`,
 			`rename:${TMP}->${CANONICAL}`,
 		]);
+	});
+
+	test('save: removes existing canonical before rename (Obsidian rename does not overwrite)', async () => {
+		const adapter = makeAdapter();
+		const filesPresent = new Set<string>([CANONICAL]);
+		const callOrder: string[] = [];
+
+		adapter.exists.mockImplementation((path: string) => Promise.resolve(filesPresent.has(path)));
+		adapter.write.mockImplementation((path: string) => {
+			callOrder.push(`write:${path}`);
+			filesPresent.add(path);
+			return Promise.resolve();
+		});
+		adapter.remove.mockImplementation((path: string) => {
+			callOrder.push(`remove:${path}`);
+			filesPresent.delete(path);
+			return Promise.resolve();
+		});
+		adapter.rename.mockImplementation((from: string, to: string) => {
+			callOrder.push(`rename:${from}->${to}`);
+			if (filesPresent.has(to)) {
+				return Promise.reject(new Error('Destination file already exists!'));
+			}
+			filesPresent.delete(from);
+			filesPresent.add(to);
+			return Promise.resolve();
+		});
+
+		const store = new StateStore(asAdapter(adapter), PLUGIN_FOLDER, makeLogger());
+		await expect(store.save(makeState())).resolves.toBeUndefined();
+
+		expect(callOrder).toEqual([
+			`write:${TMP}`,
+			`remove:${CANONICAL}`,
+			`rename:${TMP}->${CANONICAL}`,
+		]);
+	});
+
+	test('save: skips remove when canonical does not exist', async () => {
+		const adapter = makeAdapter();
+		adapter.exists.mockResolvedValue(false);
+
+		const store = new StateStore(asAdapter(adapter), PLUGIN_FOLDER, makeLogger());
+		await store.save(makeState());
+
+		expect(adapter.remove).not.toHaveBeenCalled();
+		expect(adapter.rename).toHaveBeenCalledWith(TMP, CANONICAL);
 	});
 
 	test('recovery: .tmp exists but canonical does not — loads tmp, emits state.recover, renames', async () => {

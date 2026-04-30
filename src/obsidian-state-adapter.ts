@@ -19,4 +19,8 @@ export class ObsidianStateAdapter implements StateAdapter {
 	rename(from: string, to: string): Promise<void> {
 		return this.adapter.rename(from, to);
 	}
+
+	remove(path: string): Promise<void> {
+		return this.adapter.remove(path);
+	}
 }
