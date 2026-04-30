@@ -4,6 +4,23 @@ Steps to configure and manually test the plugin across platforms and phases.
 
 ---
 
+## GitHub personal access token setup
+
+Jackdaw authenticates with GitHub using a classic personal access token (PAT). Create one before configuring the plugin.
+
+1. In GitHub, go to **Settings → Developer settings → Personal access tokens → Tokens (classic)**.
+2. Click **Generate new token (classic)**.
+3. Set an **Expiration** (90 days is a reasonable default; you will need to regenerate and re-enter it when it expires).
+4. Under **Select scopes**, check **`repo`** (the top-level checkbox). This grants read/write access to repository contents and is the only scope Jackdaw requires. No other scopes are needed.
+5. Click **Generate token** and copy the value immediately — GitHub shows it only once.
+6. Paste the token into Obsidian → Settings → Jackdaw → **Personal access token**.
+
+> **Security note:** store the PAT only in the Jackdaw settings field. Do not commit it to any file. The plugin never logs it — PAT values are scrubbed from `sync.log` automatically.
+
+**Test repo:** for initial testing, create a small dedicated GitHub repository (e.g. `yourname/obsidian-test`). Avoid using a production repo until you are confident in the plugin's behavior.
+
+---
+
 ## Desktop setup (Phase 3+ gate)
 
 Before signing off on any phase from Phase 3 onward, smoke-test the plugin in Obsidian desktop:
@@ -15,7 +32,7 @@ Before signing off on any phase from Phase 3 onward, smoke-test the plugin in Ob
 2. Run `npm install && npm run build` from the repo directory.
 3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Jackdaw**.
 4. Open Settings → Jackdaw and enter:
-   - **PAT** — a GitHub personal access token with `repo` scope.
+   - **PAT** — a GitHub personal access token with `repo` scope (see [GitHub personal access token setup](#github-personal-access-token-setup) above).
    - **Repository** — `owner/repo` of a small test repo you control.
    - **Branch** — the branch to sync against (e.g. `main`).
 5. Click the sync ribbon icon. Verify the status bar shows "Syncing…" and then a success message.
