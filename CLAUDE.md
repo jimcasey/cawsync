@@ -33,7 +33,7 @@ npm run lint      # ESLint over src/
 
 ## Development workflow
 
-See `docs/workflow.md` for the full workflow. See `docs/human-interactions.md` for every human approval gate. ADRs live in `docs/adr/`. Planning session summaries live in `docs/sessions/`.
+See `docs/workflow.md` for the full workflow. See `docs/testing.md` for manual testing steps. ADRs live in `docs/adr/`. Planning session summaries live in `docs/sessions/`.
 
 ## Issue number shorthand
 
