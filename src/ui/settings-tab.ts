@@ -261,8 +261,12 @@ class SyncLogModal extends Modal {
 		new Setting(this.contentEl)
 			.addButton(btn =>
 				btn.setButtonText('Copy').onClick(async () => {
-					await navigator.clipboard.writeText(this.contents);
-					new Notice('Log copied to clipboard');
+					try {
+						await navigator.clipboard.writeText(this.contents);
+						new Notice('Log copied to clipboard');
+					} catch {
+						new Notice('Failed to copy — open the log file directly');
+					}
 				}),
 			)
 			.addButton(btn => btn.setButtonText('Close').onClick(() => this.close()));
