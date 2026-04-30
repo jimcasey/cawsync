@@ -1,6 +1,8 @@
 import { Notice, Platform, Plugin } from 'obsidian';
 import { Settings, DEFAULT_SETTINGS } from './settings';
 import { JackdawSettingsTab } from './ui/settings-tab';
+import { RibbonIcon } from './ui/ribbon';
+import { StatusBar } from './ui/status-bar';
 
 export default class JackdawPlugin extends Plugin {
 	settings!: Settings;
@@ -15,16 +17,29 @@ export default class JackdawPlugin extends Plugin {
 
 		this.addSettingTab(new JackdawSettingsTab(this.app, this));
 
-		this.addRibbonIcon('sync', 'Jackdaw: Sync vault', () => {
-			new Notice('Sync coming soon');
-		});
+		let statusBar: StatusBar | undefined;
+		if (!Platform.isMobileApp) {
+			statusBar = new StatusBar(this.addStatusBarItem());
+		}
+
+		const syncAction = async (): Promise<void> => {
+			ribbon.setSyncing();
+			statusBar?.setSyncing();
+			try {
+				// TODO: wire sync engine
+				new Notice('Jackdaw: Sync coming soon');
+			} finally {
+				ribbon.setIdle();
+				statusBar?.setIdle(null);
+			}
+		};
+
+		const ribbon = new RibbonIcon(this, syncAction);
 
 		this.addCommand({
 			id: 'sync-vault',
-			name: 'Sync vault',
-			callback: () => {
-				new Notice('Sync coming soon');
-			},
+			name: 'Sync with GitHub',
+			callback: syncAction,
 		});
 	}
 

@@ -1,0 +1,6 @@
+.jackdaw-syncing svg {
+  animation: jackdaw-spin 1s linear infinite;
+}
+@keyframes jackdaw-spin {
+  to { transform: rotate(360deg); }
+}
