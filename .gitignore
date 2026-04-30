@@ -3,4 +3,7 @@ coverage/
 data.json
 main.js
 node_modules/
+sync-state.json
+sync-state.json.tmp
 sync.log
+sync.log.1
