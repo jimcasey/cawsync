@@ -64,7 +64,16 @@ export async function buildFirstSyncSummary(
 			if (localBlobSha !== null && localBlobSha === remote.blobSha) {
 				identical.push(path);
 			} else {
-				conflicts.push({ path, action: 'conflict', local: 'added', remote: 'added' });
+				conflicts.push({
+					path,
+					action: 'conflict',
+					local: 'added',
+					remote: 'added',
+					isBinary: local.isBinary,
+					localSize: local.size,
+					remoteSize: remote.size,
+					remoteBlobSha: remote.blobSha,
+				});
 			}
 		}
 	}

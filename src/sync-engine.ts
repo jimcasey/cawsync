@@ -136,7 +136,19 @@ export class SyncEngine {
 			}
 
 			// Detect and resolve conflicts
-			const conflictItems = classified.filter((c): c is ConflictItem => c.action === 'conflict');
+			const conflictItems: ConflictItem[] = classified
+				.filter((c) => c.action === 'conflict')
+				.map((c) => {
+					const localChange = local.get(c.path);
+					const remoteChange = remote.get(c.path);
+					return {
+						...c,
+						isBinary: localChange?.isBinary ?? remoteChange?.isBinary ?? false,
+						localSize: localChange?.size ?? 0,
+						remoteSize: remoteChange?.size ?? 0,
+						remoteBlobSha: remoteChange?.blobSha,
+					};
+				});
 			await this.logger.debug('sync.conflicts', {
 				count: conflictItems.length,
 				paths: conflictItems.map((c) => c.path),

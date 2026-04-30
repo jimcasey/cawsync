@@ -3,6 +3,7 @@ import { Settings, DEFAULT_SETTINGS } from './settings';
 import { JackdawSettingsTab } from './ui/settings-tab';
 import { RibbonIcon } from './ui/ribbon';
 import { StatusBar } from './ui/status-bar';
+import { ConflictResolutionModal } from './ui/modals/conflict-resolution-modal';
 import { GitHubClient } from './github-client';
 import { Logger } from './logger';
 import { ObsidianStateAdapter } from './obsidian-state-adapter';
@@ -54,7 +55,13 @@ export default class JackdawPlugin extends Plugin {
 			logger,
 		);
 
-		const resolver = new PolicyBasedResolver(() => this.settings.conflictPolicy);
+		const policyResolver = new PolicyBasedResolver(() => this.settings.conflictPolicy);
+		const conflictModal = new ConflictResolutionModal(
+			this.app,
+			vault,
+			client,
+			() => ({ owner: this.settings.owner, repo: this.settings.repo }),
+		);
 
 		this.engine = new SyncEngine(
 			vault,
@@ -62,8 +69,8 @@ export default class JackdawPlugin extends Plugin {
 			stateStore,
 			logger,
 			() => this.settings,
-			resolver,
-			resolver,
+			conflictModal,
+			policyResolver,
 		);
 
 		if (!Platform.isMobileApp) {

@@ -474,7 +474,15 @@ describe('normal sync', () => {
 
 		const result = await engine.sync();
 
-		expect(conflicts.resolve).toHaveBeenCalledWith([conflictPath]);
+		expect(conflicts.resolve).toHaveBeenCalledWith([
+			{
+				...conflictPath,
+				isBinary: false,
+				localSize: 0,
+				remoteSize: 0,
+				remoteBlobSha: undefined,
+			},
+		]);
 		expect(result.status).toBe('cancelled');
 	});
 
@@ -499,7 +507,15 @@ describe('normal sync', () => {
 
 		const result = await engine.sync();
 
-		expect(conflicts.resolve).toHaveBeenCalledWith([conflictPath]);
+		expect(conflicts.resolve).toHaveBeenCalledWith([
+			{
+				...conflictPath,
+				isBinary: false,
+				localSize: 10,
+				remoteSize: 10,
+				remoteBlobSha: 'blob-conflict.md',
+			},
+		]);
 		expect(applyPush).toHaveBeenCalledOnce();
 		expect(result.status).toBe('success');
 	});
@@ -764,7 +780,15 @@ describe('first-sync', () => {
 			localOnly: [],
 			remoteOnly: ['conflict.md'],
 			identical: [],
-			conflicts: [{ path: 'conflict.md', action: 'conflict', local: 'added', remote: 'added' }],
+			conflicts: [{
+				path: 'conflict.md',
+				action: 'conflict',
+				local: 'added',
+				remote: 'added',
+				isBinary: false,
+				localSize: 0,
+				remoteSize: 0,
+			}],
 		};
 
 		vi.mocked(buildLocalInventory).mockResolvedValue(new Map());

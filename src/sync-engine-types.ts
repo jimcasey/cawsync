@@ -29,7 +29,12 @@ export interface ClassifiedPath {
 	remote: RemoteChangeType;
 }
 
-export interface ConflictItem extends ClassifiedPath {}
+export interface ConflictItem extends ClassifiedPath {
+	isBinary: boolean;
+	localSize: number;
+	remoteSize: number;
+	remoteBlobSha?: string;
+}
 
 export interface FirstSyncSummary {
 	localOnly: string[];

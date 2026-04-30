@@ -4,7 +4,17 @@ import type { ConflictItem } from '../src/sync-engine-types';
 import type { ConflictPolicy } from '../src/settings';
 
 function makeConflicts(): ConflictItem[] {
-	return [{ path: 'a.md', action: 'conflict', local: 'modified', remote: 'modified' }];
+	return [
+		{
+			path: 'a.md',
+			action: 'conflict',
+			local: 'modified',
+			remote: 'modified',
+			isBinary: false,
+			localSize: 0,
+			remoteSize: 0,
+		},
+	];
 }
 
 test('reads policy fresh on each resolve — value change after construction takes effect', async () => {
