@@ -348,8 +348,9 @@ interface GHLogger {
 // Error taxonomy thrown by GitHubClient methods:
 class GHAuthError extends Error {}         // 401 — bad/expired PAT
 class GHNotFoundError extends Error {}     // 404 — missing resource or insufficient permissions
-class GHEmptyRepoError extends Error {}    // 409 from any endpoint, or a 404 on branches/<name> that
-                                           // a follow-up `git/refs/heads` probe shows has zero refs —
+class GHEmptyRepoError extends Error {}    // 409 from any endpoint with body "Git Repository is empty",
+                                           // or a 404 on branches/<name> that a follow-up
+                                           // `git/refs/heads` probe answers with 409 —
                                            // i.e. the repo exists but has no commits yet.
 class GHRateLimitError extends Error {     // rate limit exhausted or secondary-limit retries exceeded
   retryAfterMs: number;
@@ -382,9 +383,9 @@ All requests include `Authorization: Bearer <PAT>`. PAT is read from settings on
 - **Secondary rate limits (429 or 403 with `retry-after`):** Honor `Retry-After`, exponential backoff with jitter, max 3 retries.
 - **Network errors:** Single retry after 2s. Surface the underlying error message.
 - **Auth failure (401):** Abort immediately with a "Check your token" error; never retry, never log the token.
-- **Not found (404):** Could be missing repo, missing branch, or PAT lacks permission. The error message should be honest about ambiguity. `getBranch()` additionally probes `git/refs/heads` on a 404 to distinguish a freshly-created repo with no commits (→ `GHEmptyRepoError`) from a missing repo or branch (→ `GHNotFoundError`); the empty-repo case is common at first-sync against a brand-new GitHub repo and warrants its own user-facing message.
+- **Not found (404):** Could be missing repo, missing branch, or PAT lacks permission. The error message should be honest about ambiguity. `getBranch()` additionally probes `git/refs/heads` on a 404 to distinguish a freshly-created repo with no commits — for which the probe itself returns 409 (→ `GHEmptyRepoError`) — from a missing repo or branch (→ `GHNotFoundError`). The empty-repo case is common at first-sync against a brand-new GitHub repo and warrants its own user-facing message.
 - **Conflict (422):** Throw `GHFastForwardError`. In practice only `updateRef` receives a 422 from GitHub; the engine handles retry. Any other operation receiving a 422 will also surface as `GHFastForwardError`.
-- **Conflict (409):** Throw `GHEmptyRepoError`. GitHub returns 409 for tree/blob/commit operations against a repo with no default branch yet.
+- **Conflict (409) with body "Git Repository is empty":** Throw `GHEmptyRepoError`. GitHub returns this on tree/blob/commit operations against a repo with no default branch yet. A 409 with a different body falls through to the generic error path.
 - **Server errors (5xx):** Exponential backoff with jitter, max 3 retries. Throws `GHServerError` with the status code if retries are exhausted.
 
 ### 6.5 Implementation notes
