@@ -116,13 +116,14 @@
   grid-template-columns: 1fr 1fr;
   font-family: var(--font-monospace);
   font-size: 0.85em;
-  white-space: pre-wrap;
-  word-break: break-word;
+  white-space: pre;
+  overflow-x: auto;
 }
 
 .jackdaw-diff-line {
   padding: 0 0.5em;
   line-height: 20px;
+  min-height: 20px;
 }
 
 .jackdaw-diff-context {
@@ -132,14 +133,14 @@
 
 .jackdaw-diff-remove {
   grid-column: 1 / 2;
-  background: var(--background-modifier-error);
-  color: var(--text-error);
+  background: rgba(var(--color-red-rgb), 0.15);
+  color: var(--text-normal);
 }
 
 .jackdaw-diff-add {
   grid-column: 2 / 3;
-  background: var(--background-modifier-success);
-  color: var(--text-success);
+  background: rgba(var(--color-green-rgb), 0.15);
+  color: var(--text-normal);
 }
 
 .jackdaw-mobile .jackdaw-diff {
