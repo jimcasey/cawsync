@@ -90,6 +90,8 @@ Modules:
 - **Logger** — writes structured log entries to `.obsidian/plugins/<id>/sync.log`. Never logs file contents, never logs the PAT.
 - **UI** — a settings tab, a ribbon icon and command for "Sync now," a status bar item showing last-sync time, and a modal-based conflict resolution view.
 
+The Sync Engine hands the conflict-resolver UI a `ConflictItem[]` rather than a raw `ClassifiedPath[]`. `ConflictItem` extends `ClassifiedPath` with `isBinary`, `localSize`, `remoteSize`, and `remoteBlobSha` — enough context for the resolver to render a diff (text or binary-summary) and lazily fetch remote content via `getBlob(remoteBlobSha)` without re-querying the engine or re-walking the local/remote change sets. The engine populates these fields from the `LocalChange` / `RemoteChange` maps it already holds; the first-sync flow populates them when emitting added/added conflicts.
+
 ---
 
 ## 4. State model
@@ -346,6 +348,10 @@ interface GHLogger {
 // Error taxonomy thrown by GitHubClient methods:
 class GHAuthError extends Error {}         // 401 — bad/expired PAT
 class GHNotFoundError extends Error {}     // 404 — missing resource or insufficient permissions
+class GHEmptyRepoError extends Error {}    // 409 from any endpoint with body "Git Repository is empty",
+                                           // or a 404 on branches/<name> that a follow-up
+                                           // `git/refs/heads` probe answers with 409 —
+                                           // i.e. the repo exists but has no commits yet.
 class GHRateLimitError extends Error {     // rate limit exhausted or secondary-limit retries exceeded
   retryAfterMs: number;
 }
@@ -377,8 +383,9 @@ All requests include `Authorization: Bearer <PAT>`. PAT is read from settings on
 - **Secondary rate limits (429 or 403 with `retry-after`):** Honor `Retry-After`, exponential backoff with jitter, max 3 retries.
 - **Network errors:** Single retry after 2s. Surface the underlying error message.
 - **Auth failure (401):** Abort immediately with a "Check your token" error; never retry, never log the token.
-- **Not found (404):** Could be missing repo, missing branch, or PAT lacks permission. The error message should be honest about ambiguity.
+- **Not found (404):** Could be missing repo, missing branch, or PAT lacks permission. The error message should be honest about ambiguity. `getBranch()` additionally probes `git/refs/heads` on a 404 to distinguish a freshly-created repo with no commits — for which the probe itself returns 409 (→ `GHEmptyRepoError`) — from a missing repo or branch (→ `GHNotFoundError`). The empty-repo case is common at first-sync against a brand-new GitHub repo and warrants its own user-facing message.
 - **Conflict (422):** Throw `GHFastForwardError`. In practice only `updateRef` receives a 422 from GitHub; the engine handles retry. Any other operation receiving a 422 will also surface as `GHFastForwardError`.
+- **Conflict (409) with body "Git Repository is empty":** Throw `GHEmptyRepoError`. GitHub returns this on tree/blob/commit operations against a repo with no default branch yet. A 409 with a different body falls through to the generic error path.
 - **Server errors (5xx):** Exponential backoff with jitter, max 3 retries. Throws `GHServerError` with the status code if retries are exhausted.
 
 ### 6.5 Implementation notes
@@ -463,16 +470,20 @@ For ordinary syncs with conflicts.
 Layout:
 - Header: "Resolve N conflicts."
 - For each conflict, a row with:
-  - File path
-  - Two-way diff view: local on the left, remote on the right (or stacked unified on mobile, where horizontal space is tight).
+  - File path and an expand caret.
   - Two buttons: "Keep local" / "Keep remote."
+  - Diff body, hidden while collapsed; rendered as a two-way diff on expand (local on the left, remote on the right; stacked unified on mobile, where horizontal space is tight).
 - Footer:
   - "Apply selections and sync" (disabled until every conflict has a selection).
   - "Cancel sync" (always enabled).
 
 Interaction:
 - Clicking a side's button pre-selects it; user can change before applying.
-- For binary files, the diff view shows "(binary file, N bytes locally, M bytes remotely)" instead of content — no diff rendering.
+- Rows are **collapsed by default**. Expanding a row triggers a lazy load of its diff: read local text via the vault adapter and fetch remote bytes via `getBlob(remoteBlobSha)`, then compute the line diff. Loading / error / binary / text are four distinct row content states.
+- The modal holds an in-modal `Map<path, ContentState>` cache keyed by file path. The cache survives row unmount when virtualization scrolls a row out of the viewport, so re-expansion is instant. The cache is discarded when the modal closes.
+- For binary files, the diff body shows "(binary file, N bytes locally, M bytes remotely)" instead of content — no fetch, no diff rendering.
+
+Lazy-expand is the load-bearing choice that lets the modal scale to first-sync conflict counts in the hundreds: rendering all diffs eagerly would require an O(N) blob fetch before the modal opens and would defeat virtualization with thousands of pre-mounted `<pre>` blocks.
 
 Diff rendering: use `diff` (the npm package) or hand-roll line-level Myers diff. The full `diff-match-patch` library is overkill for v1.
 
