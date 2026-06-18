@@ -1,0 +1,30 @@
+name: Integration
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Serialize runs so concurrent push + workflow_dispatch don't race on the
+# shared sandbox PAT's rate-limit pool. Don't cancel in-progress runs — they
+# need to reach teardown so per-run branches are deleted from the sandbox.
+concurrency:
+  group: integration
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:integration
+        env:
+          JACKDAW_GH_TOKEN: ${{ secrets.INTEGRATION_TEST_GH_TOKEN }}
+          JACKDAW_TEST_REPO: jimcasey/jackdaw-ci-sandbox

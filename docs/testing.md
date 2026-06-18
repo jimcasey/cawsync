@@ -50,6 +50,46 @@ Before signing off on any phase from Phase 3 onward, smoke-test the plugin in Ob
 
 ---
 
+## Integration tests (§11.2)
+
+Automated end-to-end tests that exercise the sync engine against a real GitHub repository. Live in `tests/integration/` and run under a separate vitest config so they never trip during `npm test`.
+
+### Sandbox repo
+
+Tests run against a dedicated sandbox repository identified by the `JACKDAW_TEST_REPO` env var. The conventional value (used by CI) is `jimcasey/jackdaw-ci-sandbox`. The repo has a long-lived `main` seed branch with a small fixture commit; each test creates a fresh per-run branch off `main` and deletes it on teardown. Nothing in the harness touches `main` directly.
+
+If the sandbox repo doesn't exist yet, create it as an empty repo with a single commit on `main` (e.g. add a README on creation) before running the suite.
+
+### Running locally
+
+1. Create a fine-grained personal access token scoped to **only the sandbox repo**, with **Contents: read & write**, expiring in 90 days. (Same shape as the [GitHub personal access token setup](#github-personal-access-token-setup) above, but pointed at the sandbox.)
+2. Export the env vars and run:
+   ```sh
+   export JACKDAW_GH_TOKEN=<your-pat>
+   export JACKDAW_TEST_REPO=jimcasey/jackdaw-ci-sandbox
+   npm run test:integration
+   ```
+3. The suite creates and deletes its own branches. If a run is killed mid-test, orphaned `ci/...` branches may remain on the sandbox — they are safe to delete by hand from the GitHub UI.
+
+### Running in CI
+
+The workflow is `.github/workflows/integration.yml`. It triggers on push to `main` and on manual `workflow_dispatch` from the Actions tab. It does **not** run on pull requests (PRs from forks cannot read the secret, and PR runs against the sandbox would race with each other).
+
+The PAT is stored as the repository secret `INTEGRATION_TEST_GH_TOKEN`.
+
+### Rotating the integration PAT
+
+Fine-grained tokens expire (default 90 days). To rotate:
+
+1. In GitHub → **Settings → Developer settings → Personal access tokens → Fine-grained tokens**, generate a replacement scoped to `jimcasey/jackdaw-ci-sandbox` with **Contents: read & write** and a new 90-day expiry.
+2. In the `jackdaw` repo → **Settings → Secrets and variables → Actions**, update `INTEGRATION_TEST_GH_TOKEN` with the new value.
+3. Trigger the **Integration** workflow via `workflow_dispatch` to confirm the new token works.
+4. Revoke the old token from the fine-grained tokens page.
+
+Set a calendar reminder for a few days before expiry — the workflow will start failing once the old token expires.
+
+---
+
 ## iOS manual testing (Phase 5 gate)
 
 Corresponds to §11.3 of the design specification. Run on a **physical iPhone** — this cannot be delegated or automated.
