@@ -1,6 +1,6 @@
 {
-  "id": "jackdaw",
-  "name": "Jackdaw",
+  "id": "cawsync",
+  "name": "Cawsync",
   "version": "0.0.1",
   "minAppVersion": "1.4.0",
   "description": "Manual, bidirectional, one-button sync between an Obsidian vault and a GitHub repository branch.",

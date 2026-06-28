@@ -1,7 +1,7 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest';
 import { Logger } from '../src/logger';
 
-const PREFIX = '.obsidian/plugins/jackdaw';
+const PREFIX = '.obsidian/plugins/cawsync';
 const LOG_PATH = `${PREFIX}/sync.log`;
 const BACKUP_PATH = `${PREFIX}/sync.log.1`;
 const MAX_BYTES = 1024 * 1024;

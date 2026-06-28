@@ -2,13 +2,13 @@ import { App, Modal, Notice, PluginSettingTab, Setting } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../settings';
 import { GitHubClient, GHAuthError, GHNotFoundError, GHEmptyRepoError } from '../github-client';
 import { PLUGIN_ID } from '../constants';
-import type JackdawPlugin from '../main';
+import type CawsyncPlugin from '../main';
 
-export class JackdawSettingsTab extends PluginSettingTab {
-	plugin: JackdawPlugin;
+export class CawsyncSettingsTab extends PluginSettingTab {
+	plugin: CawsyncPlugin;
 	private client: GitHubClient;
 
-	constructor(app: App, plugin: JackdawPlugin, client: GitHubClient) {
+	constructor(app: App, plugin: CawsyncPlugin, client: GitHubClient) {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.client = client;
@@ -138,7 +138,7 @@ export class JackdawSettingsTab extends PluginSettingTab {
 			.setName('Include .obsidian configs')
 			.setDesc(
 				'Most users do not need this — Obsidian Sync already replicates .obsidian between your devices. ' +
-				"Enabling this pushes plugin configs to GitHub. Jackdaw's own data and state files are always excluded."
+				"Enabling this pushes plugin configs to GitHub. Cawsync's own data and state files are always excluded."
 			)
 			.addToggle(toggle =>
 				toggle

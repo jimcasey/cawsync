@@ -1,5 +1,5 @@
 {
-  "name": "jackdaw",
+  "name": "cawsync",
   "version": "0.1.0",
   "description": "Manual, bidirectional, one-button sync between an Obsidian vault and a GitHub repository branch",
   "main": "main.js",

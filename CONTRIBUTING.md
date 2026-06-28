@@ -1,18 +1,18 @@
-# Contributing to Jackdaw
+# Contributing to Cawsync
 
-Thanks for poking at the source. Jackdaw is small, opinionated, and developed incrementally; before you sink time into a change, skim the design spec and the workflow doc to get a feel for the constraints.
+Thanks for poking at the source. Cawsync is small, opinionated, and developed incrementally; before you sink time into a change, skim the design spec and the workflow doc to get a feel for the constraints.
 
 ## Prerequisites
 
 - Node.js 20+ and npm.
 - An Obsidian vault you're willing to test against. A throwaway vault is recommended.
-- A small dedicated GitHub repo for sync testing. Don't point Jackdaw at your real notes repo while iterating.
+- A small dedicated GitHub repo for sync testing. Don't point Cawsync at your real notes repo while iterating.
 
 ## Build
 
 ```sh
-git clone https://github.com/jimcasey/jackdaw.git
-cd jackdaw
+git clone https://github.com/jimcasey/cawsync.git
+cd cawsync
 npm install
 npm run build      # production build → main.js
 npm run dev        # watch mode (rebuilds on save)
@@ -25,10 +25,10 @@ npm test           # unit tests (vitest)
 
 1. Symlink (or copy) the repo into your vault's plugins folder:
    ```sh
-   ln -s /path/to/jackdaw <your-vault>/.obsidian/plugins/jackdaw
+   ln -s /path/to/cawsync <your-vault>/.obsidian/plugins/cawsync
    ```
 2. Run `npm install && npm run build` to produce `main.js`.
-3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Jackdaw**.
+3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Cawsync**.
 4. While developing, run `npm run dev` for watch mode and use **Reload app without saving** (Ctrl/Cmd+P) after each rebuild.
 
 For end-user install instructions (BRAT), see the [README](README.md).
@@ -54,7 +54,7 @@ The full development workflow — branch strategy, issue tracking, planning sess
 
 ## Reporting issues
 
-File issues against [`jimcasey/jackdaw`](https://github.com/jimcasey/jackdaw/issues). Include:
+File issues against [`jimcasey/cawsync`](https://github.com/jimcasey/cawsync/issues). Include:
 
 - Obsidian version and platform (desktop OS / iOS).
 - A redacted copy of the relevant `sync.log` entries (the log scrubs the PAT automatically; double-check before pasting).

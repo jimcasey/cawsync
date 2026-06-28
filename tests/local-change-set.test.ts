@@ -145,18 +145,18 @@ describe('buildLocalChangeSet', () => {
 	test('file matching hard-excluded path → not in output', async () => {
 		const adapter = makeAdapter({
 			listFiles: [
-				'.obsidian/plugins/jackdaw/data.json',
-				'.obsidian/plugins/jackdaw/sync-state.json',
-				'.obsidian/plugins/jackdaw/sync.log',
+				'.obsidian/plugins/cawsync/data.json',
+				'.obsidian/plugins/cawsync/sync-state.json',
+				'.obsidian/plugins/cawsync/sync.log',
 				'notes.md',
 			],
 			textContent: { 'notes.md': 'hi' },
 		});
 		const result = await buildLocalChangeSet(adapter, BASE_STATE, BASE_SETTINGS);
 
-		expect(result.has('.obsidian/plugins/jackdaw/data.json')).toBe(false);
-		expect(result.has('.obsidian/plugins/jackdaw/sync-state.json')).toBe(false);
-		expect(result.has('.obsidian/plugins/jackdaw/sync.log')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/data.json')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/sync-state.json')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/sync.log')).toBe(false);
 		expect(result.has('notes.md')).toBe(true);
 	});
 
@@ -180,21 +180,21 @@ describe('buildLocalChangeSet', () => {
 			exists: { '.gitignore': false },
 			listDirectory: {
 				'.obsidian': { files: [], dirs: ['plugins'] },
-				'.obsidian/plugins': { files: [], dirs: ['jackdaw'] },
-				'.obsidian/plugins/jackdaw': {
+				'.obsidian/plugins': { files: [], dirs: ['cawsync'] },
+				'.obsidian/plugins/cawsync': {
 					files: ['data.json', 'sync-state.json', 'sync.log', 'main.js'],
 					dirs: [],
 				},
 			},
-			textContent: { '.obsidian/plugins/jackdaw/main.js': 'plugin code' },
+			textContent: { '.obsidian/plugins/cawsync/main.js': 'plugin code' },
 		});
 		const result = await buildLocalChangeSet(adapter, BASE_STATE, settings);
 
-		expect(result.has('.obsidian/plugins/jackdaw/data.json')).toBe(false);
-		expect(result.has('.obsidian/plugins/jackdaw/sync-state.json')).toBe(false);
-		expect(result.has('.obsidian/plugins/jackdaw/sync.log')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/data.json')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/sync-state.json')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/sync.log')).toBe(false);
 		// main.js is not self-excluded and should appear
-		expect(result.has('.obsidian/plugins/jackdaw/main.js')).toBe(true);
+		expect(result.has('.obsidian/plugins/cawsync/main.js')).toBe(true);
 	});
 
 	test('binary file detected by extension and read via readBinary', async () => {

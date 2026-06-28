@@ -26,11 +26,11 @@ describe('createConflictRow', () => {
 			onToggle: () => {},
 		});
 
-		expect(row.el.classList.contains('jackdaw-conflict-row')).toBe(true);
-		expect(row.el.classList.contains('jackdaw-expanded')).toBe(false);
+		expect(row.el.classList.contains('cawsync-conflict-row')).toBe(true);
+		expect(row.el.classList.contains('cawsync-expanded')).toBe(false);
 		expect(row.el.dataset.path).toBe('notes/foo.md');
-		expect(row.el.querySelector('.jackdaw-conflict-row-path')?.textContent).toBe('notes/foo.md');
-		expect(row.el.querySelectorAll('.jackdaw-conflict-row-button').length).toBe(2);
+		expect(row.el.querySelector('.cawsync-conflict-row-path')?.textContent).toBe('notes/foo.md');
+		expect(row.el.querySelectorAll('.cawsync-conflict-row-button').length).toBe(2);
 	});
 
 	test('clicking Keep local invokes onSelect with keep-local', () => {
@@ -42,7 +42,7 @@ describe('createConflictRow', () => {
 			onSelect,
 			onToggle: () => {},
 		});
-		const btn = row.el.querySelector('.jackdaw-keep-local') as HTMLButtonElement;
+		const btn = row.el.querySelector('.cawsync-keep-local') as HTMLButtonElement;
 		btn.click();
 		expect(onSelect).toHaveBeenCalledWith('keep-local');
 	});
@@ -56,7 +56,7 @@ describe('createConflictRow', () => {
 			onSelect,
 			onToggle: () => {},
 		});
-		const btn = row.el.querySelector('.jackdaw-keep-remote') as HTMLButtonElement;
+		const btn = row.el.querySelector('.cawsync-keep-remote') as HTMLButtonElement;
 		btn.click();
 		expect(onSelect).toHaveBeenCalledWith('keep-remote');
 	});
@@ -70,7 +70,7 @@ describe('createConflictRow', () => {
 			onSelect: () => {},
 			onToggle,
 		});
-		const caret = row.el.querySelector('.jackdaw-conflict-row-caret') as HTMLButtonElement;
+		const caret = row.el.querySelector('.cawsync-conflict-row-caret') as HTMLButtonElement;
 		caret.click();
 		expect(onToggle).toHaveBeenCalled();
 	});
@@ -83,25 +83,25 @@ describe('createConflictRow', () => {
 			onSelect: () => {},
 			onToggle: () => {},
 		});
-		const localBtn = row.el.querySelector('.jackdaw-keep-local') as HTMLElement;
-		const remoteBtn = row.el.querySelector('.jackdaw-keep-remote') as HTMLElement;
+		const localBtn = row.el.querySelector('.cawsync-keep-local') as HTMLElement;
+		const remoteBtn = row.el.querySelector('.cawsync-keep-remote') as HTMLElement;
 
 		row.setResolution('keep-local');
-		expect(localBtn.classList.contains('jackdaw-selected')).toBe(true);
-		expect(remoteBtn.classList.contains('jackdaw-selected')).toBe(false);
-		expect(row.el.classList.contains('jackdaw-resolved')).toBe(true);
+		expect(localBtn.classList.contains('cawsync-selected')).toBe(true);
+		expect(remoteBtn.classList.contains('cawsync-selected')).toBe(false);
+		expect(row.el.classList.contains('cawsync-resolved')).toBe(true);
 
 		row.setResolution('keep-remote');
-		expect(localBtn.classList.contains('jackdaw-selected')).toBe(false);
-		expect(remoteBtn.classList.contains('jackdaw-selected')).toBe(true);
+		expect(localBtn.classList.contains('cawsync-selected')).toBe(false);
+		expect(remoteBtn.classList.contains('cawsync-selected')).toBe(true);
 
 		row.setResolution(null);
-		expect(localBtn.classList.contains('jackdaw-selected')).toBe(false);
-		expect(remoteBtn.classList.contains('jackdaw-selected')).toBe(false);
-		expect(row.el.classList.contains('jackdaw-resolved')).toBe(false);
+		expect(localBtn.classList.contains('cawsync-selected')).toBe(false);
+		expect(remoteBtn.classList.contains('cawsync-selected')).toBe(false);
+		expect(row.el.classList.contains('cawsync-resolved')).toBe(false);
 	});
 
-	test('setExpanded toggles jackdaw-expanded class and aria-expanded', () => {
+	test('setExpanded toggles cawsync-expanded class and aria-expanded', () => {
 		const row = createConflictRow({
 			item: makeItem(),
 			initialResolution: null,
@@ -109,14 +109,14 @@ describe('createConflictRow', () => {
 			onSelect: () => {},
 			onToggle: () => {},
 		});
-		const caret = row.el.querySelector('.jackdaw-conflict-row-caret') as HTMLElement;
+		const caret = row.el.querySelector('.cawsync-conflict-row-caret') as HTMLElement;
 
 		row.setExpanded(true);
-		expect(row.el.classList.contains('jackdaw-expanded')).toBe(true);
+		expect(row.el.classList.contains('cawsync-expanded')).toBe(true);
 		expect(caret.getAttribute('aria-expanded')).toBe('true');
 
 		row.setExpanded(false);
-		expect(row.el.classList.contains('jackdaw-expanded')).toBe(false);
+		expect(row.el.classList.contains('cawsync-expanded')).toBe(false);
 		expect(caret.getAttribute('aria-expanded')).toBe('false');
 	});
 
@@ -128,7 +128,7 @@ describe('createConflictRow', () => {
 			onSelect: () => {},
 			onToggle: () => {},
 		});
-		expect(row.el.classList.contains('jackdaw-expanded')).toBe(true);
+		expect(row.el.classList.contains('cawsync-expanded')).toBe(true);
 	});
 
 	test('setContent renders loading state', () => {
@@ -140,7 +140,7 @@ describe('createConflictRow', () => {
 			onToggle: () => {},
 		});
 		row.setContent({ status: 'loading' });
-		expect(row.el.querySelector('.jackdaw-conflict-row-loading')?.textContent).toBe('Loading…');
+		expect(row.el.querySelector('.cawsync-conflict-row-loading')?.textContent).toBe('Loading…');
 	});
 
 	test('setContent renders error message', () => {
@@ -152,7 +152,7 @@ describe('createConflictRow', () => {
 			onToggle: () => {},
 		});
 		row.setContent({ status: 'error', message: 'Network error' });
-		expect(row.el.querySelector('.jackdaw-conflict-row-error')?.textContent).toBe('Network error');
+		expect(row.el.querySelector('.cawsync-conflict-row-error')?.textContent).toBe('Network error');
 	});
 
 	test('setContent renders binary byte-count summary', () => {
@@ -164,7 +164,7 @@ describe('createConflictRow', () => {
 			onToggle: () => {},
 		});
 		row.setContent({ status: 'binary', localSize: 1024, remoteSize: 2048 });
-		const text = row.el.querySelector('.jackdaw-conflict-row-binary')?.textContent;
+		const text = row.el.querySelector('.cawsync-conflict-row-binary')?.textContent;
 		expect(text).toBe('(binary file, 1024 bytes locally, 2048 bytes remotely)');
 	});
 
@@ -184,14 +184,14 @@ describe('createConflictRow', () => {
 				{ kind: 'add', text: 'new', remoteLineNumber: 2 },
 			],
 		});
-		const lineEls = row.el.querySelectorAll('.jackdaw-diff-line');
+		const lineEls = row.el.querySelectorAll('.cawsync-diff-line');
 		expect(lineEls.length).toBe(3);
-		expect(lineEls[0].classList.contains('jackdaw-diff-context')).toBe(true);
+		expect(lineEls[0].classList.contains('cawsync-diff-context')).toBe(true);
 		expect(lineEls[0].textContent).toBe('unchanged');
 		expect((lineEls[0] as HTMLElement).dataset.kind).toBe('context');
-		expect(lineEls[1].classList.contains('jackdaw-diff-remove')).toBe(true);
+		expect(lineEls[1].classList.contains('cawsync-diff-remove')).toBe(true);
 		expect(lineEls[1].textContent).toBe('old');
-		expect(lineEls[2].classList.contains('jackdaw-diff-add')).toBe(true);
+		expect(lineEls[2].classList.contains('cawsync-diff-add')).toBe(true);
 		expect(lineEls[2].textContent).toBe('new');
 	});
 
@@ -296,7 +296,7 @@ describe('createConflictRow', () => {
 		});
 		row.setContent({ status: 'loading' });
 		row.setContent({ status: 'binary', localSize: 10, remoteSize: 20 });
-		expect(row.el.querySelectorAll('.jackdaw-conflict-row-loading').length).toBe(0);
-		expect(row.el.querySelectorAll('.jackdaw-conflict-row-binary').length).toBe(1);
+		expect(row.el.querySelectorAll('.cawsync-conflict-row-loading').length).toBe(0);
+		expect(row.el.querySelectorAll('.cawsync-conflict-row-binary').length).toBe(1);
 	});
 });

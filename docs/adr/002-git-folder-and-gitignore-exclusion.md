@@ -8,7 +8,7 @@
 ## Decision
 
 1. `.git/` is hard-excluded from sync, always and at the directory level. No user opt-out.
-2. If a `.gitignore` file exists at the vault root, Jackdaw reads it and applies its positive patterns as additional exclusions during the local file scan. Only the vault-root `.gitignore` is read; subdirectory `.gitignore` files, `.git/info/exclude`, and the user's global gitignore are ignored.
+2. If a `.gitignore` file exists at the vault root, Cawsync reads it and applies its positive patterns as additional exclusions during the local file scan. Only the vault-root `.gitignore` is read; subdirectory `.gitignore` files, `.git/info/exclude`, and the user's global gitignore are ignored.
 3. `.gitignore` and `.gitattributes` are **not** hard-excluded. They are legitimate vault content that the user may want to sync.
 4. Pattern negation lines in `.gitignore` (lines beginning with `!`) are silently skipped for v1. The user can override exclusions via the exclude-pattern settings field if needed.
 
@@ -16,11 +16,11 @@
 
 An Obsidian vault may sit inside a `git` working tree — either deliberately (the user manages the vault as a git repo) or accidentally (Obsidian Sync copied the vault folder onto a machine that lives inside a checked-out repo). Without intervention, the file scanner would walk into `.git/`, which can contain hundreds of thousands of objects in an active repository. More critically, the resulting sync state and commit would be nonsensical: pack files, ORIG_HEAD, reflogs, etc., pushed to an unrelated GitHub repo.
 
-The comment on issue #25 raised the complementary question: if a `.gitignore` already expresses what the user wants excluded from version control, Jackdaw should respect that intent rather than requiring the user to duplicate the patterns in its settings.
+The comment on issue #25 raised the complementary question: if a `.gitignore` already expresses what the user wants excluded from version control, Cawsync should respect that intent rather than requiring the user to duplicate the patterns in its settings.
 
 ## Rationale
 
-**Hard-exclude `.git/` at the directory level (not file level).** Walking the directory only to skip every file wastes I/O on large repos. The scanner should never descend into `.git/`. This is not a user-configurable behaviour: there is no meaningful use case for pushing git internals to a GitHub repo via Jackdaw.
+**Hard-exclude `.git/` at the directory level (not file level).** Walking the directory only to skip every file wastes I/O on large repos. The scanner should never descend into `.git/`. This is not a user-configurable behaviour: there is no meaningful use case for pushing git internals to a GitHub repo via Cawsync.
 
 **Read vault-root `.gitignore` only.** Subdirectory `.gitignore` files require recursive accumulation during the tree walk (each directory's patterns apply to its subtree only). That logic significantly complicates the scanner for v1. The vault-root file covers the most common cases: language build artifacts, OS noise files, IDE directories. Subdirectory `.gitignore` support is deferred to a later issue.
 

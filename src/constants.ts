@@ -1,4 +1,4 @@
-export const PLUGIN_ID = 'jackdaw';
+export const PLUGIN_ID = 'cawsync';
 
 export const SELF_EXCLUDED_PATHS: readonly string[] = [
 	`.obsidian/plugins/${PLUGIN_ID}/data.json`,

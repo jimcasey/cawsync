@@ -2,7 +2,7 @@
 
 ## Overview
 
-Jackdaw is developed incrementally through Claude Code. Claude handles implementation and plays product/design roles during planning. The human approves at every gate.
+Cawsync is developed incrementally through Claude Code. Claude handles implementation and plays product/design roles during planning. The human approves at every gate.
 
 ---
 

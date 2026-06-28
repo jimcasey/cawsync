@@ -4,14 +4,14 @@ export class RibbonIcon {
 	private el: HTMLElement;
 
 	constructor(plugin: Plugin, onClick: () => void) {
-		this.el = plugin.addRibbonIcon('refresh-cw', 'Jackdaw: Sync vault', onClick);
+		this.el = plugin.addRibbonIcon('refresh-cw', 'Cawsync: Sync vault', onClick);
 	}
 
 	setSyncing(): void {
-		this.el.addClass('jackdaw-syncing');
+		this.el.addClass('cawsync-syncing');
 	}
 
 	setIdle(): void {
-		this.el.removeClass('jackdaw-syncing');
+		this.el.removeClass('cawsync-syncing');
 	}
 }

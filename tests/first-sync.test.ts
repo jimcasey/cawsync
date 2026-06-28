@@ -94,16 +94,16 @@ describe('buildLocalInventory', () => {
 	test('self-excluded plugin files are excluded', async () => {
 		const adapter = makeAdapter({
 			listFiles: [
-				'.obsidian/plugins/jackdaw/data.json',
-				'.obsidian/plugins/jackdaw/sync-state.json',
+				'.obsidian/plugins/cawsync/data.json',
+				'.obsidian/plugins/cawsync/sync-state.json',
 				'notes.md',
 			],
 			textContent: { 'notes.md': 'hi' },
 		});
 		const result = await buildLocalInventory(adapter, BASE_SETTINGS);
 
-		expect(result.has('.obsidian/plugins/jackdaw/data.json')).toBe(false);
-		expect(result.has('.obsidian/plugins/jackdaw/sync-state.json')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/data.json')).toBe(false);
+		expect(result.has('.obsidian/plugins/cawsync/sync-state.json')).toBe(false);
 		expect(result.has('notes.md')).toBe(true);
 	});
 

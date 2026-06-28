@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Jackdaw is an Obsidian plugin that provides manual, bidirectional, one-button synchronization between an Obsidian vault and a single GitHub repository branch. It uses the GitHub REST API exclusively — no `git` binary, no `isomorphic-git`. It runs on Obsidian desktop and Obsidian iOS. Android is explicitly not supported in v1.
+Cawsync is an Obsidian plugin that provides manual, bidirectional, one-button synchronization between an Obsidian vault and a single GitHub repository branch. It uses the GitHub REST API exclusively — no `git` binary, no `isomorphic-git`. It runs on Obsidian desktop and Obsidian iOS. Android is explicitly not supported in v1.
 
 The primary use case is enabling agentic AI tools (like Claude Code) to edit vault notes by using GitHub as transport: user clicks Sync → agent edits repo → user clicks Sync again.
 
@@ -26,9 +26,9 @@ npm run lint      # ESLint over src/
 
 ## Loading in Obsidian
 
-1. Clone (or symlink) this repo into `<your-vault>/.obsidian/plugins/jackdaw/`.
+1. Clone (or symlink) this repo into `<your-vault>/.obsidian/plugins/cawsync/`.
 2. Run `npm install && npm run build` to produce `main.js`.
-3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Jackdaw**.
+3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Cawsync**.
 4. During development, run `npm run dev` for watch mode, then use **Reload app without saving** (Ctrl/Cmd+P) after each rebuild.
 
 ## Development workflow
@@ -39,7 +39,7 @@ See `docs/workflow.md` for the full workflow. See `docs/testing.md` for manual t
 
 If the session opens with a message that is solely an issue number (e.g. `#40` or `40`), treat it as an instruction to implement that issue:
 
-1. Fetch the issue from `jimcasey/jackdaw` using the GitHub MCP tools.
+1. Fetch the issue from `jimcasey/cawsync` using the GitHub MCP tools.
 2. Read the issue body and any linked design-spec sections to understand the requirements.
 3. Update local `main` from the remote (`git checkout main && git pull --ff-only origin main`) so the new branch starts from the latest base. If `main` is already checked out, just pull.
 4. Create (or check out) the appropriate feature branch following the repo's branch-naming convention, branching from the freshly-updated `main`.
@@ -74,7 +74,7 @@ Core modules (see §3 of the design spec for the ASCII diagram):
 - **`src/sync-notice.ts`** — `formatSyncOutcome()`; maps `SyncResult` to `{ toasts, statusBar }` for `main.ts` to act on. Keeps notice logic testable without Obsidian dependency.
 - **`src/obsidian-vault-adapter.ts`** — Production `VaultAdapter`; bridges sync engine to `app.vault` / `app.vault.adapter`. Uses duck-typed `isTFile()` guard (not `instanceof`) to stay testable in pure Node.
 - **`src/obsidian-state-adapter.ts`** — Production `StateAdapter`; thin passthrough to `app.vault.adapter` for `StateStore`.
-- **`src/ui/settings-tab.ts`** — `JackdawSettingsTab`; Connection, Sync behavior, Inclusion, Diagnostics sections; `SyncLogModal` (with Copy button + log path hint); `ResetSyncStateModal`.
+- **`src/ui/settings-tab.ts`** — `CawsyncSettingsTab`; Connection, Sync behavior, Inclusion, Diagnostics sections; `SyncLogModal` (with Copy button + log path hint); `ResetSyncStateModal`.
 - **`src/ui/ribbon.ts`** — `RibbonIcon`; `setSyncing()` / `setIdle()` CSS class toggle on the ribbon element.
 - **`src/ui/status-bar.ts`** — `StatusBar`; `setIdle()`, `setSyncing()`, `setError()`; desktop-only.
 - **`src/ui/diff.ts`** — `computeLineDiff()` wraps the `diff` npm package's `diffLines`. Returns `DiffLine[]` (`{ kind: 'context'|'add'|'remove', text, localLineNumber?, remoteLineNumber? }`) so the row renderer stays a dumb function of structured data. Pure Node, no DOM.
@@ -82,7 +82,7 @@ Core modules (see §3 of the design spec for the ASCII diagram):
 - **`src/ui/modals/virtualized-list.ts`** — Pure `computeVirtualWindow()` taking `{scrollTop, viewportHeight, itemCount, getItemHeight, overscan}` and returning `{startIndex, endIndex, totalHeight, offsetY}`. Variable-height rows via `getItemHeight`; default overscan = 3.
 - **`src/ui/modals/conflict-resolution-modal.ts`** — `ConflictResolutionModal extends Modal implements ConflictResolver`. Rows are collapsed by default; expanding triggers lazy `getBlob()` + local read + `computeLineDiff()`. In-modal `Map<path, ContentState>` cache survives unmount when rows scroll out. `Apply` disabled until every conflict has a resolution.
 - **`src/ui/modals/first-sync-modal.ts`** — `FirstSyncModal extends Modal implements FirstSyncResolver`. Same row + virtualized-list components as the conflict modal, plus a summary block (counts of local-only / remote-only / identical / conflicts) and a confirmation checkbox per §8.4. `Apply` disabled until checkbox is checked **and** every conflict resolved.
-- **`src/main.ts`** — `JackdawPlugin` entry point. Instantiates and wires all components. Wraps `ConflictResolutionModal` and `FirstSyncModal` in `PolicyAwareConflictResolver` / `PolicyAwareFirstSyncResolver` so the live `conflictPolicy` setting decides between modal UI and `PolicyBasedResolver` on each sync. `runSync()` with `isRunningSync` guard. `handleSyncResult()` delegates to `sync-notice.ts`. Android short-circuit.
+- **`src/main.ts`** — `CawsyncPlugin` entry point. Instantiates and wires all components. Wraps `ConflictResolutionModal` and `FirstSyncModal` in `PolicyAwareConflictResolver` / `PolicyAwareFirstSyncResolver` so the live `conflictPolicy` setting decides between modal UI and `PolicyBasedResolver` on each sync. `runSync()` with `isRunningSync` guard. `handleSyncResult()` delegates to `sync-notice.ts`. Android short-circuit.
 
 ## Key design constraints
 
