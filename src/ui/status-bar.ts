@@ -8,24 +8,24 @@ export class StatusBar {
 
 	setIdle(lastSyncAt: string | null): void {
 		if (lastSyncAt === null) {
-			this.el.setText('Jackdaw: Never synced');
+			this.el.setText('Cawsync: Never synced');
 		} else {
 			const time = new Date(lastSyncAt).toLocaleTimeString([], {
 				hour: '2-digit',
 				minute: '2-digit',
 			});
-			this.el.setText(`Jackdaw: Synced ${time}`);
+			this.el.setText(`Cawsync: Synced ${time}`);
 		}
 		this.el.removeAttribute('aria-label');
 	}
 
 	setSyncing(): void {
-		this.el.setText('Jackdaw: Syncing…');
+		this.el.setText('Cawsync: Syncing…');
 		this.el.removeAttribute('aria-label');
 	}
 
 	setError(message: string): void {
-		this.el.setText('Jackdaw: Sync error');
+		this.el.setText('Cawsync: Sync error');
 		this.el.setAttribute('aria-label', message);
 	}
 }

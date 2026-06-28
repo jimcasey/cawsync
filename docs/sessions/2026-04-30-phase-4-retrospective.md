@@ -77,9 +77,9 @@ All four implementation issues shipped. The table below summarises each module, 
 
 ### 2.6 Mobile layout via CSS only, no JS branching
 
-**Planning decision:** "Render the same DOM on both platforms (one column of diff lines tagged `add`/`remove`/`context`), and switch between side-by-side and stacked unified via a CSS media query plus a `.jackdaw-mobile` body class."
+**Planning decision:** "Render the same DOM on both platforms (one column of diff lines tagged `add`/`remove`/`context`), and switch between side-by-side and stacked unified via a CSS media query plus a `.cawsync-mobile` body class."
 
-**What shipped:** Side-by-side diff is implemented via `display: grid; grid-template-columns: 1fr 1fr` with `add` lines pinned to column 2 and `remove` lines pinned to column 1. Mobile stacks via `.jackdaw-mobile .jackdaw-diff { display: block; }` overriding the grid. The class is set on `modalEl` from `Platform.isMobileApp` at `onOpen()` time. No JS branching in either the row component or the modals.
+**What shipped:** Side-by-side diff is implemented via `display: grid; grid-template-columns: 1fr 1fr` with `add` lines pinned to column 2 and `remove` lines pinned to column 1. Mobile stacks via `.cawsync-mobile .cawsync-diff { display: block; }` overriding the grid. The class is set on `modalEl` from `Platform.isMobileApp` at `onOpen()` time. No JS branching in either the row component or the modals.
 
 **Resolution:** Aligns with the planning doc. No spec update needed.
 

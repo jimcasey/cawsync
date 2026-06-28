@@ -82,11 +82,11 @@ describe('matchesGlob', () => {
 	test('pattern with slash matches full vault-relative path', () => {
 		expect(
 			matchesGlob(
-				'.obsidian/plugins/jackdaw/data.json',
-				'.obsidian/plugins/jackdaw/data.json',
+				'.obsidian/plugins/cawsync/data.json',
+				'.obsidian/plugins/cawsync/data.json',
 			),
 		).toBe(true);
-		expect(matchesGlob('.obsidian/plugins/jackdaw/data.json', 'other/data.json')).toBe(false);
+		expect(matchesGlob('.obsidian/plugins/cawsync/data.json', 'other/data.json')).toBe(false);
 	});
 });
 
@@ -195,11 +195,11 @@ describe('FileScanner', () => {
 
 	test('self-excluded plugin paths are never included', async () => {
 		const pluginFiles = [
-			'.obsidian/plugins/jackdaw/data.json',
-			'.obsidian/plugins/jackdaw/sync-state.json',
-			'.obsidian/plugins/jackdaw/sync-state.json.tmp',
-			'.obsidian/plugins/jackdaw/sync.log',
-			'.obsidian/plugins/jackdaw/sync.log.1',
+			'.obsidian/plugins/cawsync/data.json',
+			'.obsidian/plugins/cawsync/sync-state.json',
+			'.obsidian/plugins/cawsync/sync-state.json.tmp',
+			'.obsidian/plugins/cawsync/sync.log',
+			'.obsidian/plugins/cawsync/sync.log.1',
 		];
 		const adapter = makeAdapter({
 			exists: { '.gitignore': false },
@@ -278,8 +278,8 @@ describe('FileScanner', () => {
 			listFiles: [],
 			listDirectory: {
 				'.obsidian': { files: [], dirs: ['plugins'] },
-				'.obsidian/plugins': { files: [], dirs: ['jackdaw'] },
-				'.obsidian/plugins/jackdaw': {
+				'.obsidian/plugins': { files: [], dirs: ['cawsync'] },
+				'.obsidian/plugins/cawsync': {
 					files: ['data.json', 'sync-state.json', 'main.js'],
 					dirs: [],
 				},
@@ -290,8 +290,8 @@ describe('FileScanner', () => {
 			userExcludePatterns: [],
 		});
 		const results = await scanner.scan();
-		expect(results).not.toContain('.obsidian/plugins/jackdaw/data.json');
-		expect(results).not.toContain('.obsidian/plugins/jackdaw/sync-state.json');
-		expect(results).toContain('.obsidian/plugins/jackdaw/main.js');
+		expect(results).not.toContain('.obsidian/plugins/cawsync/data.json');
+		expect(results).not.toContain('.obsidian/plugins/cawsync/sync-state.json');
+		expect(results).toContain('.obsidian/plugins/cawsync/main.js');
 	});
 });

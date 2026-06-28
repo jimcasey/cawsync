@@ -14,13 +14,13 @@ All seven implementation issues shipped. The table below summarises each module 
 |---|---|---|---|---|
 | `src/obsidian-vault-adapter.ts` | #62 | 75 | 15 | Production `VaultAdapter`; create-vs-modify distinction; `isTFile()` duck-typed guard; dotfile fallback |
 | `src/obsidian-state-adapter.ts` | #63 | 22 | 5 | Thin passthrough to `DataAdapter`; `exists`, `read`, `write`, `rename` |
-| `src/ui/settings-tab.ts` | #64, #67 | 290 | — | `JackdawSettingsTab`; Connection, Sync behavior, Inclusion, Diagnostics sections; `SyncLogModal`; `ResetSyncStateModal` |
+| `src/ui/settings-tab.ts` | #64, #67 | 290 | — | `CawsyncSettingsTab`; Connection, Sync behavior, Inclusion, Diagnostics sections; `SyncLogModal`; `ResetSyncStateModal` |
 | `src/ui/ribbon.ts` | #65 | 17 | — | `RibbonIcon`; `setSyncing()` / `setIdle()` CSS class toggle |
 | `src/ui/status-bar.ts` | #65 | 31 | — | `StatusBar`; `setIdle()`, `setSyncing()`, `setError()` |
-| `styles.css` | #65 | 5 | — | `jackdaw-syncing` spin animation |
+| `styles.css` | #65 | 5 | — | `cawsync-syncing` spin animation |
 | `src/classifier.ts` | #66 | 83 | 23 | Added §4.4 staleness detection; `state-refresh` action; grew from 71 LOC / 20 tests |
 | `src/sync-notice.ts` | #68 | 59 | 9 | `formatSyncOutcome()`; extracted from `main.ts` for testability |
-| `src/main.ts` | #68 | 164 | — | `JackdawPlugin`; component wiring; `runSync()`; `handleSyncResult()`; Android short-circuit |
+| `src/main.ts` | #68 | 164 | — | `CawsyncPlugin`; component wiring; `runSync()`; `handleSyncResult()`; Android short-circuit |
 
 **Quality gates at close:**
 - `npm test`: 221 tests, 16 files, all pass (up from 187 / 13 at Phase 2 close)
@@ -59,7 +59,7 @@ All seven implementation issues shipped. The table below summarises each module 
 
 **Spec:** §8.2 and §8.5 describe sync invocation but do not specify what happens if the user clicks the ribbon a second time while a sync is in flight.
 
-**What shipped:** `main.ts` adds an `isRunningSync: boolean` field. A second `runSync()` call returns immediately while a sync is in flight. Without this guard, a second click would toggle `jackdaw-syncing` off via the first call's `finally` block while the first sync was still running.
+**What shipped:** `main.ts` adds an `isRunningSync: boolean` field. A second `runSync()` call returns immediately while a sync is in flight. Without this guard, a second click would toggle `cawsync-syncing` off via the first call's `finally` block while the first sync was still running.
 
 **Resolution:** This is a necessary UI correctness fix absent from the spec. The spec should note it in §8.2: "If a sync is already in progress, ignore ribbon click and command invocations." Captured here; spec update deferred to the next editing pass.
 

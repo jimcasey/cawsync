@@ -618,7 +618,7 @@ Captured here so they're not lost.
 
 **Decision: MIT License.**
 
-Jackdaw is released under the MIT License. See `LICENSE` in the repository root.
+Cawsync is released under the MIT License. See `LICENSE` in the repository root.
 
 Rationale: maximum permissiveness with zero friction for contributors. The Obsidian plugin ecosystem skews MIT, AGPL's network-use clause is largely theoretical for a client-side plugin, and Apache 2.0's patent grant adds little value given the plugin's implementation surface.
 

@@ -26,49 +26,49 @@ export interface ConflictRowController {
 
 export function createConflictRow(opts: ConflictRowOptions): ConflictRowController {
 	const root = document.createElement('div');
-	root.classList.add('jackdaw-conflict-row');
+	root.classList.add('cawsync-conflict-row');
 	root.dataset.path = opts.item.path;
 
 	const header = document.createElement('div');
-	header.classList.add('jackdaw-conflict-row-header');
+	header.classList.add('cawsync-conflict-row-header');
 
 	const caret = document.createElement('button');
 	caret.type = 'button';
-	caret.classList.add('jackdaw-conflict-row-caret');
+	caret.classList.add('cawsync-conflict-row-caret');
 	caret.setAttribute('aria-label', 'Toggle diff view');
 	caret.addEventListener('click', () => opts.onToggle());
 
 	const pathEl = document.createElement('span');
-	pathEl.classList.add('jackdaw-conflict-row-path');
+	pathEl.classList.add('cawsync-conflict-row-path');
 	pathEl.textContent = opts.item.path;
 
 	const keepLocalBtn = document.createElement('button');
 	keepLocalBtn.type = 'button';
-	keepLocalBtn.classList.add('jackdaw-conflict-row-button', 'jackdaw-keep-local');
+	keepLocalBtn.classList.add('cawsync-conflict-row-button', 'cawsync-keep-local');
 	keepLocalBtn.textContent = 'Keep local';
 	keepLocalBtn.addEventListener('click', () => opts.onSelect('keep-local'));
 
 	const keepRemoteBtn = document.createElement('button');
 	keepRemoteBtn.type = 'button';
-	keepRemoteBtn.classList.add('jackdaw-conflict-row-button', 'jackdaw-keep-remote');
+	keepRemoteBtn.classList.add('cawsync-conflict-row-button', 'cawsync-keep-remote');
 	keepRemoteBtn.textContent = 'Keep remote';
 	keepRemoteBtn.addEventListener('click', () => opts.onSelect('keep-remote'));
 
 	header.append(caret, pathEl, keepLocalBtn, keepRemoteBtn);
 
 	const body = document.createElement('div');
-	body.classList.add('jackdaw-conflict-row-body');
+	body.classList.add('cawsync-conflict-row-body');
 
 	root.append(header, body);
 
 	function setResolution(resolution: ConflictResolution | null): void {
-		keepLocalBtn.classList.toggle('jackdaw-selected', resolution === 'keep-local');
-		keepRemoteBtn.classList.toggle('jackdaw-selected', resolution === 'keep-remote');
-		root.classList.toggle('jackdaw-resolved', resolution !== null);
+		keepLocalBtn.classList.toggle('cawsync-selected', resolution === 'keep-local');
+		keepRemoteBtn.classList.toggle('cawsync-selected', resolution === 'keep-remote');
+		root.classList.toggle('cawsync-resolved', resolution !== null);
 	}
 
 	function setExpanded(expanded: boolean): void {
-		root.classList.toggle('jackdaw-expanded', expanded);
+		root.classList.toggle('cawsync-expanded', expanded);
 		caret.setAttribute('aria-expanded', String(expanded));
 	}
 
@@ -77,7 +77,7 @@ export function createConflictRow(opts: ConflictRowOptions): ConflictRowControll
 
 		if (content.status === 'loading') {
 			const el = document.createElement('div');
-			el.classList.add('jackdaw-conflict-row-loading');
+			el.classList.add('cawsync-conflict-row-loading');
 			el.textContent = 'Loading…';
 			body.append(el);
 			return;
@@ -85,7 +85,7 @@ export function createConflictRow(opts: ConflictRowOptions): ConflictRowControll
 
 		if (content.status === 'error') {
 			const el = document.createElement('div');
-			el.classList.add('jackdaw-conflict-row-error');
+			el.classList.add('cawsync-conflict-row-error');
 			el.textContent = content.message;
 			body.append(el);
 			return;
@@ -93,17 +93,17 @@ export function createConflictRow(opts: ConflictRowOptions): ConflictRowControll
 
 		if (content.status === 'binary') {
 			const el = document.createElement('div');
-			el.classList.add('jackdaw-conflict-row-binary');
+			el.classList.add('cawsync-conflict-row-binary');
 			el.textContent = `(binary file, ${content.localSize} bytes locally, ${content.remoteSize} bytes remotely)`;
 			body.append(el);
 			return;
 		}
 
 		const list = document.createElement('div');
-		list.classList.add('jackdaw-diff');
+		list.classList.add('cawsync-diff');
 		for (const line of content.lines) {
 			const lineEl = document.createElement('div');
-			lineEl.classList.add('jackdaw-diff-line', `jackdaw-diff-${line.kind}`);
+			lineEl.classList.add('cawsync-diff-line', `cawsync-diff-${line.kind}`);
 			lineEl.dataset.kind = line.kind;
 			lineEl.textContent = line.text;
 			list.append(lineEl);

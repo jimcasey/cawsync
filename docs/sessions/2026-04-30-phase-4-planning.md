@@ -35,7 +35,7 @@ Local content is read via the `VaultAdapter` already injected — `readText` for
 
 ### Mobile layout: stacked unified, driven by CSS
 
-§8.3 explicitly: "two-way diff view: local on the left, remote on the right (or stacked unified on mobile)." We render the same DOM on both platforms (one column of diff lines tagged `add`/`remove`/`context`), and switch between side-by-side and stacked unified via a CSS media query plus a `.jackdaw-mobile` body class set when `Platform.isMobileApp` is true. No platform branching in the component tree. Same row component used by both modals.
+§8.3 explicitly: "two-way diff view: local on the left, remote on the right (or stacked unified on mobile)." We render the same DOM on both platforms (one column of diff lines tagged `add`/`remove`/`context`), and switch between side-by-side and stacked unified via a CSS media query plus a `.cawsync-mobile` body class set when `Platform.isMobileApp` is true. No platform branching in the component tree. Same row component used by both modals.
 
 ### Virtualized list for the conflict rows
 

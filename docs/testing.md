@@ -6,7 +6,7 @@ Steps to configure and manually test the plugin across platforms and phases.
 
 ## GitHub personal access token setup
 
-Jackdaw authenticates with GitHub using a personal access token (PAT). Create one before configuring the plugin.
+Cawsync authenticates with GitHub using a personal access token (PAT). Create one before configuring the plugin.
 
 **Prerequisites:** create a small dedicated GitHub repository to use as your sync target (e.g. `yourname/obsidian-test`). Avoid using a production repo until you are confident in the plugin's behavior.
 
@@ -24,9 +24,9 @@ Jackdaw authenticates with GitHub using a personal access token (PAT). Create on
 4. Under **Repository access**, select **Only select repositories** and choose your sync repo.
 5. Under **Permissions → Repository permissions**, set **Contents** to **Read and write**. No other permissions are needed.
 6. Click **Generate token** and copy the value immediately — GitHub shows it only once.
-7. Paste the token into Obsidian → Settings → Jackdaw → **Personal access token**.
+7. Paste the token into Obsidian → Settings → Cawsync → **Personal access token**.
 
-> **Security note:** store the PAT only in the Jackdaw settings field. Do not commit it to any file. The plugin never logs it — PAT values are scrubbed from `sync.log` automatically.
+> **Security note:** store the PAT only in the Cawsync settings field. Do not commit it to any file. The plugin never logs it — PAT values are scrubbed from `sync.log` automatically.
 
 ---
 
@@ -36,11 +36,11 @@ Before signing off on any phase from Phase 3 onward, smoke-test the plugin in Ob
 
 1. Symlink the repo into your vault's plugins folder:
    ```sh
-   ln -s /path/to/jackdaw <your-vault>/.obsidian/plugins/jackdaw
+   ln -s /path/to/cawsync <your-vault>/.obsidian/plugins/cawsync
    ```
 2. Run `npm install && npm run build` from the repo directory.
-3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Jackdaw**.
-4. Open Settings → Jackdaw and enter:
+3. In Obsidian → Settings → Community plugins, disable Safe mode and enable **Cawsync**.
+4. Open Settings → Cawsync and enter:
    - **PAT** — a GitHub personal access token with `repo` scope (see [GitHub personal access token setup](#github-personal-access-token-setup) above).
    - **Repository** — `owner/repo` of a small test repo you control.
    - **Branch** — the branch to sync against (e.g. `main`).
@@ -57,7 +57,7 @@ Corresponds to §11.3 of the design specification. Run on a **physical iPhone** 
 **Setup:**
 1. Install Obsidian on the iPhone.
 2. Install the plugin via BRAT (Settings → Community plugins → BRAT → Add beta plugin → paste the repo URL).
-3. Configure PAT, repo, and branch in Settings → Jackdaw using the same small test repo.
+3. Configure PAT, repo, and branch in Settings → Cawsync using the same small test repo.
 
 **Scenarios — record pass/fail for each:**
 
@@ -77,7 +77,7 @@ Phase 5 does not close until all scenarios pass.
 
 ## Obsidian Sync coexistence testing (Phase 5 gate)
 
-Corresponds to §11.4 of the design specification. Requires **two physical devices** both running Obsidian Sync and the Jackdaw plugin connected to the same vault and same test GitHub repo.
+Corresponds to §11.4 of the design specification. Requires **two physical devices** both running Obsidian Sync and the Cawsync plugin connected to the same vault and same test GitHub repo.
 
 **Scenarios:**
 

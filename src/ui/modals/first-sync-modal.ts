@@ -68,9 +68,9 @@ export class FirstSyncModal extends Modal implements FirstSyncResolver {
 		const { contentEl, modalEl } = this;
 		contentEl.empty();
 
-		modalEl.classList.add('jackdaw-conflict-modal', 'jackdaw-first-sync-modal');
+		modalEl.classList.add('cawsync-conflict-modal', 'cawsync-first-sync-modal');
 		if (Platform.isMobileApp) {
-			modalEl.classList.add('jackdaw-mobile');
+			modalEl.classList.add('cawsync-mobile');
 		}
 
 		const conflicts = this.summary.conflicts;
@@ -79,12 +79,12 @@ export class FirstSyncModal extends Modal implements FirstSyncResolver {
 		this.renderSummary(contentEl);
 
 		if (conflicts.length > 0) {
-			this.listEl = contentEl.createDiv({ cls: 'jackdaw-conflict-list' });
-			this.spacerEl = this.listEl.createDiv({ cls: 'jackdaw-conflict-list-spacer' });
+			this.listEl = contentEl.createDiv({ cls: 'cawsync-conflict-list' });
+			this.spacerEl = this.listEl.createDiv({ cls: 'cawsync-conflict-list-spacer' });
 			this.listEl.addEventListener('scroll', () => this.renderVisible());
 		}
 
-		const confirmRow = contentEl.createDiv({ cls: 'jackdaw-first-sync-confirm' });
+		const confirmRow = contentEl.createDiv({ cls: 'cawsync-first-sync-confirm' });
 		const checkboxLabel = confirmRow.createEl('label');
 		const checkbox = checkboxLabel.createEl('input', { type: 'checkbox' });
 		checkboxLabel.appendText(
@@ -93,7 +93,7 @@ export class FirstSyncModal extends Modal implements FirstSyncResolver {
 		checkbox.addEventListener('change', () => this.updateApplyButtonState());
 		this.confirmCheckbox = checkbox;
 
-		const footer = contentEl.createDiv({ cls: 'jackdaw-conflict-footer' });
+		const footer = contentEl.createDiv({ cls: 'cawsync-conflict-footer' });
 
 		const cancelBtn = footer.createEl('button', { text: 'Cancel sync' });
 		cancelBtn.addEventListener('click', () => this.settle('cancel'));
@@ -116,7 +116,7 @@ export class FirstSyncModal extends Modal implements FirstSyncResolver {
 			this.settle('cancel');
 		}
 		this.contentEl.empty();
-		this.modalEl.classList.remove('jackdaw-conflict-modal', 'jackdaw-first-sync-modal', 'jackdaw-mobile');
+		this.modalEl.classList.remove('cawsync-conflict-modal', 'cawsync-first-sync-modal', 'cawsync-mobile');
 		for (const controller of this.rowControllers.values()) {
 			controller.disconnect();
 		}
@@ -130,7 +130,7 @@ export class FirstSyncModal extends Modal implements FirstSyncResolver {
 	}
 
 	private renderSummary(parent: HTMLElement): void {
-		const summaryEl = parent.createDiv({ cls: 'jackdaw-first-sync-summary' });
+		const summaryEl = parent.createDiv({ cls: 'cawsync-first-sync-summary' });
 		const items: Array<[number, string]> = [
 			[this.summary.localOnly.length, 'only-local (will be pushed to GitHub)'],
 			[this.summary.remoteOnly.length, 'only-remote (will be pulled into the vault)'],
@@ -138,9 +138,9 @@ export class FirstSyncModal extends Modal implements FirstSyncResolver {
 			[this.summary.conflicts.length, 'conflicts (require resolution below)'],
 		];
 		for (const [count, label] of items) {
-			const row = summaryEl.createDiv({ cls: 'jackdaw-first-sync-summary-row' });
-			row.createSpan({ cls: 'jackdaw-first-sync-summary-count', text: String(count) });
-			row.createSpan({ cls: 'jackdaw-first-sync-summary-label', text: ` ${label}` });
+			const row = summaryEl.createDiv({ cls: 'cawsync-first-sync-summary-row' });
+			row.createSpan({ cls: 'cawsync-first-sync-summary-count', text: String(count) });
+			row.createSpan({ cls: 'cawsync-first-sync-summary-label', text: ` ${label}` });
 		}
 	}
 

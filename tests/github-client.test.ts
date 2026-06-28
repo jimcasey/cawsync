@@ -89,7 +89,7 @@ describe('GitHubClient', () => {
 			expect(param.headers['Authorization']).toBe(`Bearer ${PAT}`);
 			expect(param.headers['Accept']).toBe('application/vnd.github+json');
 			expect(param.headers['X-GitHub-Api-Version']).toBe('2022-11-28');
-			expect(param.headers['User-Agent']).toBe('obsidian-jackdaw/0.0.1');
+			expect(param.headers['User-Agent']).toBe('obsidian-cawsync/0.0.1');
 		});
 
 		test('overrides Accept header when accept option is provided', async () => {

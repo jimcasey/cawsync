@@ -26,11 +26,11 @@ Subsequent BRAT iterations are `1.0.1`, `1.1.0`, etc. The registry-submission mi
 
 §11.2 requires real-GitHub integration tests with a fresh branch per run. Two open questions: which repo, and where do the tests run.
 
-**Repo choice: a dedicated sandbox repo on the same account, e.g. `jimcasey/jackdaw-ci-sandbox`.** Rationale: keeping the test repo *separate from* the plugin repo means PR CI on `jackdaw` itself can never accidentally clobber test branches, and the sandbox can be reset / pruned independently. The repo holds one long-lived seed branch (`main`) with a small fixture commit; every test creates a fresh branch off that seed and deletes it on teardown.
+**Repo choice: a dedicated sandbox repo on the same account, e.g. `jimcasey/cawsync-ci-sandbox`.** Rationale: keeping the test repo *separate from* the plugin repo means PR CI on `cawsync` itself can never accidentally clobber test branches, and the sandbox can be reset / pruned independently. The repo holds one long-lived seed branch (`main`) with a small fixture commit; every test creates a fresh branch off that seed and deletes it on teardown.
 
 **Where tests run: GitHub Actions, on `push: main` and `workflow_dispatch` only — not on PRs.** PR CI stays hermetic (current `typecheck` / `lint` / `test` jobs only). Integration tests run after merge to `main` and on demand. Reasons: (1) PR runners on forks can't access the secret; (2) flaky network shouldn't block the per-PR review loop; (3) rate-limit budget is precious — the PAT is shared and we don't want two parallel PRs hammering it.
 
-PAT is stored as `INTEGRATION_TEST_GH_TOKEN` in the `jackdaw` repo's Actions secrets. Scope: fine-grained, repo-bound to the sandbox repo only, `Contents: read & write`, expires 90 days. Rotation is a docs note, not automated.
+PAT is stored as `INTEGRATION_TEST_GH_TOKEN` in the `cawsync` repo's Actions secrets. Scope: fine-grained, repo-bound to the sandbox repo only, `Contents: read & write`, expires 90 days. Rotation is a docs note, not automated.
 
 **Test harness: a second Vitest config (`vitest.integration.config.ts`) over `tests/integration/*.test.ts`,** invoked by `npm run test:integration`. Tests instantiate a real `GitHubClient` against the sandbox, real `SyncEngine`, and in-memory test doubles for `VaultAdapter` + `StateAdapter`. The unit-test config explicitly excludes `tests/integration/` so the existing `npm test` stays hermetic and fast.
 
@@ -142,7 +142,7 @@ The acceptance gate is the only sequential bottleneck — every bug it surfaces 
 - **iOS-side state when the modal is open and Obsidian backgrounds the app.** The §11.3 force-quit scenario covers the cold-quit path, but app-backgrounding mid-modal is a softer edge case. Worth a manual probe; not worth a separate scenario unless we see corruption.
 - **Should the "Test connection" diagnostic also probe write access?** Today it probes read (`getBranch`). For the BRAT install flow, "PAT is correct *and* has Contents:write" is the actual question. Making it write a tiny probe blob (then delete it) would catch read-only PATs. Defer unless support burden warrants.
 - **CHANGELOG.md tone and format.** Keep-A-Changelog with `## [1.0.0] - 2026-MM-DD` headers is the simple default. If we want to auto-generate from PR titles via `release-drafter` or similar, that's a follow-up.
-- **`obsidian-` prefix on the plugin name.** §14 notes the registry forbids "obsidian" in the ID and description. `manifest.json` already uses ID `jackdaw` — fine. Description currently reads *"Manual, bidirectional, one-button sync between an Obsidian vault and a GitHub repository branch."* That uses "Obsidian" as a noun referring to the host app, which is the same construction the registry permits in practice (the policy is about plugins claiming the brand, e.g. "Obsidian Sync Pro"). Worth re-reading the registry rules at submission time, not now.
+- **`obsidian-` prefix on the plugin name.** §14 notes the registry forbids "obsidian" in the ID and description. `manifest.json` already uses ID `cawsync` — fine. Description currently reads *"Manual, bidirectional, one-button sync between an Obsidian vault and a GitHub repository branch."* That uses "Obsidian" as a noun referring to the host app, which is the same construction the registry permits in practice (the policy is about plugins claiming the brand, e.g. "Obsidian Sync Pro"). Worth re-reading the registry rules at submission time, not now.
 
 ---
 
@@ -155,7 +155,7 @@ The acceptance gate is the only sequential bottleneck — every bug it surfaces 
 - Every §11.4 Obsidian Sync coexistence scenario passes.
 - Every §15 acceptance criterion is verified (perf, force-quit, README content, PAT-never-logged regression).
 - A 1.0.0 GitHub Release exists with `manifest.json`, `main.js`, `styles.css` attached.
-- A user reading only the README can install Jackdaw via BRAT and complete a first sync without consulting the design spec.
+- A user reading only the README can install Cawsync via BRAT and complete a first sync without consulting the design spec.
 
 ---
 

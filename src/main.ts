@@ -1,6 +1,6 @@
 import { App, Notice, Platform, Plugin, PluginSettingTab } from 'obsidian';
 import { Settings, DEFAULT_SETTINGS } from './settings';
-import { JackdawSettingsTab } from './ui/settings-tab';
+import { CawsyncSettingsTab } from './ui/settings-tab';
 import { RibbonIcon } from './ui/ribbon';
 import { StatusBar } from './ui/status-bar';
 import { ConflictResolutionModal } from './ui/modals/conflict-resolution-modal';
@@ -18,7 +18,7 @@ import {
 } from './sync-engine-types';
 import { formatSyncOutcome } from './sync-notice';
 
-export default class JackdawPlugin extends Plugin {
+export default class CawsyncPlugin extends Plugin {
 	settings!: Settings;
 	private engine?: SyncEngine;
 	private ribbon?: RibbonIcon;
@@ -97,7 +97,7 @@ export default class JackdawPlugin extends Plugin {
 			}
 		}
 
-		this.addSettingTab(new JackdawSettingsTab(this.app, this, client));
+		this.addSettingTab(new CawsyncSettingsTab(this.app, this, client));
 
 		const trigger = (): void => {
 			void this.runSync();
@@ -167,16 +167,16 @@ export default class JackdawPlugin extends Plugin {
 }
 
 class AndroidUnsupportedSettingsTab extends PluginSettingTab {
-	constructor(app: App, plugin: JackdawPlugin) {
+	constructor(app: App, plugin: CawsyncPlugin) {
 		super(app, plugin);
 	}
 
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl('h2', { text: 'Jackdaw' });
+		containerEl.createEl('h2', { text: 'Cawsync' });
 		containerEl.createEl('p', {
-			text: 'Jackdaw is not supported on Android. The plugin works on Obsidian desktop and iOS only.',
+			text: 'Cawsync is not supported on Android. The plugin works on Obsidian desktop and iOS only.',
 		});
 	}
 }

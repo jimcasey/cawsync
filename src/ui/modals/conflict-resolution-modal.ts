@@ -66,19 +66,19 @@ export class ConflictResolutionModal extends Modal implements ConflictResolver {
 		const { contentEl, modalEl } = this;
 		contentEl.empty();
 
-		modalEl.classList.add('jackdaw-conflict-modal');
+		modalEl.classList.add('cawsync-conflict-modal');
 		if (Platform.isMobileApp) {
-			modalEl.classList.add('jackdaw-mobile');
+			modalEl.classList.add('cawsync-mobile');
 		}
 
 		this.titleEl.setText(`Resolve ${this.conflicts.length} conflict${this.conflicts.length === 1 ? '' : 's'}.`);
 
-		this.listEl = contentEl.createDiv({ cls: 'jackdaw-conflict-list' });
-		this.spacerEl = this.listEl.createDiv({ cls: 'jackdaw-conflict-list-spacer' });
+		this.listEl = contentEl.createDiv({ cls: 'cawsync-conflict-list' });
+		this.spacerEl = this.listEl.createDiv({ cls: 'cawsync-conflict-list-spacer' });
 
 		this.listEl.addEventListener('scroll', () => this.renderVisible());
 
-		const footer = contentEl.createDiv({ cls: 'jackdaw-conflict-footer' });
+		const footer = contentEl.createDiv({ cls: 'cawsync-conflict-footer' });
 
 		const cancelBtn = footer.createEl('button', { text: 'Cancel sync' });
 		cancelBtn.addEventListener('click', () => this.settle('cancel'));
@@ -101,7 +101,7 @@ export class ConflictResolutionModal extends Modal implements ConflictResolver {
 			this.settle('cancel');
 		}
 		this.contentEl.empty();
-		this.modalEl.classList.remove('jackdaw-conflict-modal', 'jackdaw-mobile');
+		this.modalEl.classList.remove('cawsync-conflict-modal', 'cawsync-mobile');
 		for (const controller of this.rowControllers.values()) {
 			controller.disconnect();
 		}
